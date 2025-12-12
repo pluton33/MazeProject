@@ -6,7 +6,10 @@
 
 #include "SFML/Graphics/RectangleShape.hpp"
 
-MazeScreen::MazeScreen(Maze &maze, sf::RenderWindow &window) : maze(maze), window(window), cellSize(50.0f) {
+MazeScreen::MazeScreen(Maze &maze, sf::RenderWindow &window) : maze(maze), window(window), virtualSize(512.0f, 512.0f) {
+    int cols = maze.getCols();
+    cellSize = virtualSize.x / static_cast<float>(cols);
+    resizeView();
 }
 
 void MazeScreen::draw() const {
@@ -15,6 +18,7 @@ void MazeScreen::draw() const {
 
     // float cellWidth = static_cast<float>(WINDOW_WIDTH) / cols;
     // float cellHeight = static_cast<float>(WINDOW_HEIGHT) / rows;
+    window.setView(view);
 
     for (int row = 0; row < rows; ++row) {
         for (int col = 0; col < cols; ++col) {
@@ -35,6 +39,8 @@ void MazeScreen::draw() const {
 void MazeScreen::handleEvents(const sf::Event &event) {
     if (const sf::Event::KeyPressed *key = event.getIf<sf::Event::KeyPressed>()) {
         handleKeyPressed(*key);
+    } else if (event.is<sf::Event::Resized>()) {
+        resizeView();
     }
 }
 
@@ -46,4 +52,10 @@ void MazeScreen::handleKeyPressed(const sf::Event::KeyPressed &keyPressed) {
         maze.createBoard();
         draw();
     }
+}
+
+void MazeScreen::resizeView() {
+    float aspectRatio = float(window.getSize().x) / float(window.getSize().y);
+    view.setSize(sf::Vector2f(virtualSize.x * aspectRatio, virtualSize.y));
+    view.setCenter(sf::Vector2f(virtualSize.x / 2.0f, virtualSize.y / 2.0f));
 }

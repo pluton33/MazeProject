@@ -19,11 +19,15 @@ public:
 private:
     Maze &maze;
     sf::RenderWindow &window;
+    sf::View view;
+    const sf::Vector2f virtualSize;
     float cellSize;
 
     void toggleBlock(int row, int col);
 
     void handleKeyPressed(const sf::Event::KeyPressed& keyPressed);
+
+    void resizeView();
 };
 
 
