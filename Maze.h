@@ -15,11 +15,12 @@ public:
     bool readBoard();
     bool createBoard();
 
+    void printBoard() const;
+
     std::vector<std::string> getBoard() const;
     int getRows() const;
     int getCols() const;
 
-    // Metoda pomocnicza, mogła być prywatna, ale zostawiam publiczną zgodnie z oryginałem
     std::string randomLine(int length);
 
 private:

@@ -16,6 +16,10 @@ public:
 
     void handleEvents(const sf::Event &event);
 
+    sf::View getView() const {
+        return view;
+    }
+
 private:
     Maze &maze;
     sf::RenderWindow &window;

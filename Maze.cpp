@@ -53,6 +53,13 @@ bool Maze::createBoard() {
     return true; // POPRAWKA: Zwracamy true po sukcesie
 }
 
+void Maze::printBoard() const {
+    std::cout << "-------------" << std::endl;
+    for (std::string row : board) {
+        std::cout << row << std::endl;
+    }
+}
+
 std::string Maze::randomLine(int length) {
     std::string result;
     result.reserve(length);
