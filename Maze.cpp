@@ -72,6 +72,26 @@ std::string Maze::randomLine(int length) {
     return result;
 }
 
+int Maze::activateCell(int row, int col) {
+    char& cell = board[row][col];
+    if (cell == 'B') {
+        cell = 'G';
+        return 1;
+    } else if (cell == 'G' || cell == 'C') {
+        return 0;
+    }
+    return 0;
+}
+
+int Maze::deactivateCell(int row, int col) {
+    char& cell = board[row][col];
+    if (cell == 'G') {
+        cell = 'B';
+        return 1;
+    }
+    return 0;
+}
+
 std::vector<std::string> Maze::getBoard() const {
     return board;
 }

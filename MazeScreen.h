@@ -5,12 +5,13 @@
 #ifndef MAZEPROJECT_MAZESCREEN_H
 #define MAZEPROJECT_MAZESCREEN_H
 #include "Maze.h"
+#include "Player.h"
 #include "SFML/Graphics/RenderWindow.hpp"
 
 
 class MazeScreen {
 public:
-    MazeScreen(Maze &maze, sf::RenderWindow &window);
+    MazeScreen(Maze &maze, sf::RenderWindow &window, Player &player);
 
     void draw() const;
 
@@ -22,6 +23,7 @@ public:
 
 private:
     Maze &maze;
+    Player &player;
     sf::RenderWindow &window;
     sf::View view;
     const sf::Vector2f virtualSize;

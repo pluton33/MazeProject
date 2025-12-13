@@ -6,7 +6,9 @@
 
 #include "SFML/Graphics/RectangleShape.hpp"
 
-MazeScreen::MazeScreen(Maze &maze, sf::RenderWindow &window) : maze(maze), window(window), virtualSize(512.0f, 512.0f) {
+MazeScreen::MazeScreen(Maze &maze, sf::RenderWindow &window, Player &player) : maze(maze), window(window),
+                                                                               virtualSize(512.0f, 512.0f),
+                                                                               player(player) {
     int cols = maze.getCols();
     cellSize = virtualSize.x / static_cast<float>(cols);
     resizeView();
@@ -32,7 +34,6 @@ void MazeScreen::draw() const {
             else cellShape.setFillColor(sf::Color::Red);
             // window.setView(window.getDefaultView());
             window.draw(cellShape);
-
         }
     }
 }
@@ -52,8 +53,19 @@ void MazeScreen::handleKeyPressed(const sf::Event::KeyPressed &keyPressed) {
     if (keyPressed.code == sf::Keyboard::Key::Space) {
         maze.createBoard();
         maze.printBoard();
-        draw();
+    } else if (keyPressed.code == sf::Keyboard::Key::Left) {
+        player.makeMove(maze,'L');
+    } else if (keyPressed.code == sf::Keyboard::Key::Right) {
+        player.makeMove(maze,'P');
+    } else if (keyPressed.code == sf::Keyboard::Key::Down) {
+        player.makeMove(maze,'D');
+    } else if (keyPressed.code == sf::Keyboard::Key::Up) {
+        player.makeMove(maze,'G');
+    } else if (keyPressed.code == sf::Keyboard::Key::Backspace) {
+        player.undoMove(maze);
     }
+    draw();
+    maze.printBoard();
 }
 
 void MazeScreen::resizeView() {

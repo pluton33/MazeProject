@@ -23,11 +23,14 @@ public:
 
     std::string randomLine(int length);
 
+    int activateCell(int row, int col);
+    int deactivateCell(int row, int col);
 private:
     std::string filename;
     std::vector<std::string> board;
     int rows;
     int cols;
+
 };
 
 
