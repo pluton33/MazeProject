@@ -13,7 +13,7 @@ const int WINDOW_HEIGHT = 600;
 int main() {
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
     HumanPlayer seba;
-
+    //
     Maze maze("input.txt");
     if (!maze.readBoard()) {
         std::cout << "Generuje losowy labirynt 20x15." << std::endl;
@@ -24,7 +24,7 @@ int main() {
 
     sf::RenderWindow window(sf::VideoMode({(unsigned int)WINDOW_WIDTH, (unsigned int)WINDOW_HEIGHT}), "Labirynt SFML 3");
     MazeScreen mazeScreen(maze, window, seba);
-
+    mazeScreen.startGame();
     while (window.isOpen()) {
         // window.setFramerateLimit(60);
         while (const std::optional event = window.pollEvent()) {

@@ -24,8 +24,13 @@ void Player::makeMove(Maze &maze, char moveType) {
                 }
                 break;
             case 'D':
-                if (maze.activateCell(row, column)) {
+                if (maze.activateCell(row, column) && row == 0) {
                     moves += 'D';
+                }
+                break;
+            case 'G':
+                if (maze.activateCell(row, column) && row == maze.getRows() - 1) {
+                    moves += 'G';
                 }
                 break;
         }
@@ -95,4 +100,22 @@ void Player::undoMove(Maze &maze) {
     }
     if (!moves.empty()) moves.pop_back();
     std::cout << "aktualny rząd: " << row << "aktualna kolumna: " << column << "ruchy: " + moves << std::endl;
+}
+
+void Player::switchSide(const Maze &maze) {
+    row = maze.getRows() - 1;
+    startSideRowNumber = row;
+}
+
+int Player::checkForWin(const Maze &maze) {
+    if (!moves.empty() || startSideRowNumber == 0) {
+        if (row == maze.getRows()-1) {
+            return 1;
+        }
+    } else if (!moves.empty() || startSideRowNumber != 0) {
+        if (row == 0) {
+            return 1;
+        }
+    }
+    return 0;
 }

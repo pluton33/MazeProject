@@ -11,6 +11,7 @@
 
 class Player {
 public:
+
     virtual ~Player();
 
     virtual void update(Maze &maze) = 0;
@@ -19,10 +20,15 @@ public:
 
     void undoMove(Maze &maze);
 
+    void switchSide(const Maze &maze);
+
+    int checkForWin(const Maze &maze);
+
 protected:
     std::string moves;
     int column = 0;
     int row = 0;
+    int startSideRowNumber = 0;
 };
 
 

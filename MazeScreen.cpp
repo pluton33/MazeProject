@@ -24,14 +24,14 @@ void MazeScreen::draw() const {
 
     for (int row = 0; row < rows; ++row) {
         for (int col = 0; col < cols; ++col) {
-            sf::RectangleShape cellShape(sf::Vector2f(cellSize, cellSize));
+            sf::RectangleShape cellShape(sf::Vector2f(cellSize - 2.0f, cellSize - 2.0f));
             cellShape.setPosition(sf::Vector2f(row * cellSize, col * cellSize));
 
             char cell = maze.getBoard()[col][row];
 
             if (cell == 'B') cellShape.setFillColor(sf::Color::White);
             else if (cell == 'C') cellShape.setFillColor(sf::Color::Black);
-            else cellShape.setFillColor(sf::Color::Red);
+            else cellShape.setFillColor(pathColor);
             // window.setView(window.getDefaultView());
             window.draw(cellShape);
         }
@@ -49,23 +49,35 @@ void MazeScreen::handleEvents(const sf::Event &event) {
 void MazeScreen::toggleBlock(int row, int col) {
 }
 
+void MazeScreen::winGame() {
+    gameState = GameState::PAUSED;
+    pathColor = sf::Color::Green;
+}
+
 void MazeScreen::handleKeyPressed(const sf::Event::KeyPressed &keyPressed) {
     if (keyPressed.code == sf::Keyboard::Key::Space) {
         maze.createBoard();
         maze.printBoard();
-    } else if (keyPressed.code == sf::Keyboard::Key::Left) {
-        player.makeMove(maze,'L');
-    } else if (keyPressed.code == sf::Keyboard::Key::Right) {
-        player.makeMove(maze,'P');
-    } else if (keyPressed.code == sf::Keyboard::Key::Down) {
-        player.makeMove(maze,'D');
-    } else if (keyPressed.code == sf::Keyboard::Key::Up) {
-        player.makeMove(maze,'G');
-    } else if (keyPressed.code == sf::Keyboard::Key::Backspace) {
-        player.undoMove(maze);
+    }
+
+    if (gameState == GameState::RUNNING) {
+        if (keyPressed.code == sf::Keyboard::Key::Left) {
+            player.makeMove(maze,'L');
+        } else if (keyPressed.code == sf::Keyboard::Key::Right) {
+            player.makeMove(maze,'P');
+        } else if (keyPressed.code == sf::Keyboard::Key::Down) {
+            player.makeMove(maze,'D');
+        } else if (keyPressed.code == sf::Keyboard::Key::Up) {
+            player.makeMove(maze,'G');
+        } else if (keyPressed.code == sf::Keyboard::Key::Backspace) {
+            player.undoMove(maze);
+        }
     }
     draw();
     maze.printBoard();
+    if (player.checkForWin(maze)) {
+        winGame();
+    }
 }
 
 void MazeScreen::resizeView() {
@@ -78,4 +90,8 @@ void MazeScreen::resizeView() {
     view.setCenter(sf::Vector2f(virtualSize.x / 2.0f, virtualSize.y / 2.0f));
     view.setViewport(sf::FloatRect({offsetX / window.getSize().x, offsetY / window.getSize().y},
                                    {squareSide / window.getSize().x, squareSide / window.getSize().y}));
+}
+
+void MazeScreen::startGame() {
+    gameState = GameState::RUNNING;
 }

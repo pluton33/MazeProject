@@ -8,6 +8,10 @@
 #include "Player.h"
 #include "SFML/Graphics/RenderWindow.hpp"
 
+enum class GameState {
+    PAUSED,
+    RUNNING,
+};
 
 class MazeScreen {
 public:
@@ -21,17 +25,24 @@ public:
         return view;
     }
 
+    void startGame();
+
 private:
     Maze &maze;
     Player &player;
     sf::RenderWindow &window;
     sf::View view;
+    sf::Color pathColor = sf::Color::Magenta;
     const sf::Vector2f virtualSize;
     float cellSize;
+    GameState gameState;
+
 
     void toggleBlock(int row, int col);
 
-    void handleKeyPressed(const sf::Event::KeyPressed& keyPressed);
+    void winGame();
+
+    void handleKeyPressed(const sf::Event::KeyPressed &keyPressed);
 
     void resizeView();
 };
