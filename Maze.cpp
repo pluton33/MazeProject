@@ -72,13 +72,26 @@ std::string Maze::randomLine(int length) {
     return result;
 }
 
+bool Maze::isBlocked(int row, int col) {
+    char& cell = board[row][col];
+    if (cell == 'B') return false;
+    return true;
+}
+
 int Maze::activateCell(int row, int col) {
     char& cell = board[row][col];
-    if (cell == 'B') {
+    if (cell == 'B' || cell == 'M') {
         cell = 'G';
         return 1;
-    } else if (cell == 'G' || cell == 'C') {
-        return 0;
+    }
+    return 0;
+}
+
+int Maze::markCell(int row, int col) {
+    char& cell = board[row][col];
+    if (cell == 'B') {
+        cell = 'M';
+        return 1;
     }
     return 0;
 }
@@ -90,6 +103,16 @@ int Maze::deactivateCell(int row, int col) {
         return 1;
     }
     return 0;
+}
+
+void Maze::clearPaths() {
+    for (int row = 0; row < rows; ++row) {
+        for (int col = 0; col < cols; ++col) {
+            if (board[row][col] != 'C') {
+                board[row][col] = 'B';
+            }
+        }
+    }
 }
 
 std::vector<std::string> Maze::getBoard() const {

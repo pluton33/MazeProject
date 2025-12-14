@@ -20,7 +20,7 @@ void MazeScreen::draw() const {
 
     // float cellWidth = static_cast<float>(WINDOW_WIDTH) / cols;
     // float cellHeight = static_cast<float>(WINDOW_HEIGHT) / rows;
-
+    // player.update(maze);
 
     for (int row = 0; row < rows; ++row) {
         for (int col = 0; col < cols; ++col) {
@@ -31,11 +31,14 @@ void MazeScreen::draw() const {
 
             if (cell == 'B') cellShape.setFillColor(sf::Color::White);
             else if (cell == 'C') cellShape.setFillColor(sf::Color::Black);
-            else cellShape.setFillColor(pathColor);
+            else if (cell == 'G') cellShape.setFillColor(pathColor);
+            else if (cell == 'M') cellShape.setFillColor(sf::Color::Blue);
+            else cellShape.setFillColor(sf::Color::Cyan);
             // window.setView(window.getDefaultView());
             window.draw(cellShape);
         }
     }
+
 }
 
 void MazeScreen::handleEvents(const sf::Event &event) {
@@ -52,12 +55,29 @@ void MazeScreen::toggleBlock(int row, int col) {
 void MazeScreen::winGame() {
     gameState = GameState::PAUSED;
     pathColor = sf::Color::Green;
+    //wypisz ruchy(player.moves)
+}
+
+void MazeScreen::restartGame() {
+    player.resetPosition();
+    maze.createBoard();
+    maze.printBoard();
+    gameState = GameState::RUNNING;
+    pathColor = sf::Color::Magenta;
+}
+
+void MazeScreen::updateGame() {
+    if (gameState == GameState::RUNNING) {
+        player.update(maze);
+        if (player.checkForWin(maze)) {
+            winGame();
+        }
+    }
 }
 
 void MazeScreen::handleKeyPressed(const sf::Event::KeyPressed &keyPressed) {
     if (keyPressed.code == sf::Keyboard::Key::Space) {
-        maze.createBoard();
-        maze.printBoard();
+        restartGame();
     }
 
     if (gameState == GameState::RUNNING) {
@@ -71,7 +91,9 @@ void MazeScreen::handleKeyPressed(const sf::Event::KeyPressed &keyPressed) {
             player.makeMove(maze,'G');
         } else if (keyPressed.code == sf::Keyboard::Key::Backspace) {
             player.undoMove(maze);
-        }
+        } /*else if (keyPressed.code == sf::Keyboard::isKeyPressed()) {
+
+        }*/
     }
     draw();
     maze.printBoard();

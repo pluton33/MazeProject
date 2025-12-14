@@ -25,6 +25,7 @@ public:
         return view;
     }
 
+    void updateGame();
     void startGame();
 
 private:
@@ -41,6 +42,9 @@ private:
     void toggleBlock(int row, int col);
 
     void winGame();
+
+    void restartGame();
+
 
     void handleKeyPressed(const sf::Event::KeyPressed &keyPressed);
 

@@ -23,8 +23,14 @@ public:
 
     std::string randomLine(int length);
 
+    bool isBlocked(int row, int col);
     int activateCell(int row, int col);
+
+    int markCell(int row, int col);
+
     int deactivateCell(int row, int col);
+
+    void clearPaths();
 private:
     std::string filename;
     std::vector<std::string> board;

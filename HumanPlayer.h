@@ -11,6 +11,7 @@ class HumanPlayer : public Player {
 public:
     void update(Maze &maze) override {
     }
+    bool isHuman() override {return true;}
 };
 
 

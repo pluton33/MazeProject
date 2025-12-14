@@ -11,6 +11,7 @@ Player::~Player() {
 }
 
 void Player::makeMove(Maze &maze, char moveType) {
+    std::cout << "Ruch w makeMove: "  << moveType << std::endl;
     if (moves.empty()) {
         switch (moveType) {
             case 'P':
@@ -107,7 +108,13 @@ void Player::switchSide(const Maze &maze) {
     startSideRowNumber = row;
 }
 
-int Player::checkForWin(const Maze &maze) {
+void Player::resetPosition() {
+    row = 0;
+    column = 0;
+    moves.clear();
+}
+
+int Player::checkForWin(const Maze &maze) const {
     if (!moves.empty() || startSideRowNumber == 0) {
         if (row == maze.getRows()-1) {
             return 1;

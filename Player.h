@@ -16,13 +16,18 @@ public:
 
     virtual void update(Maze &maze) = 0;
 
+    virtual bool isHuman() = 0;
+
     void makeMove(Maze &maze, char moveType);
 
     void undoMove(Maze &maze);
 
     void switchSide(const Maze &maze);
 
-    int checkForWin(const Maze &maze);
+    void resetPosition();
+
+
+    int checkForWin(const Maze &maze) const;
 
 protected:
     std::string moves;
