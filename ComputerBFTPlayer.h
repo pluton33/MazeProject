@@ -16,6 +16,7 @@ struct Node {
 class ComputerBFTPlayer : public Player {
 private:
     bool pathFound = false;
+    bool isActivated = false;
     bool searchStarted = false; // Flaga: czy już zaczęliśmy szukać?
     std::string path;
     size_t pathIndex = 0; // Zmieniono na size_t dla bezpieczeństwa porównań
@@ -34,6 +35,8 @@ private:
 public:
     void update(Maze &maze) override;
     bool isHuman() override { return false; } // const i override dla poprawności
+    void activate() override { isActivated = !isActivated; }
+    void resetPosition() override;
 };
 
 #endif // MAZEPROJECT_COMPUTERPLAYER_H

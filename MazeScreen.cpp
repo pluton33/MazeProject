@@ -38,7 +38,6 @@ void MazeScreen::draw() const {
             window.draw(cellShape);
         }
     }
-
 }
 
 void MazeScreen::handleEvents(const sf::Event &event) {
@@ -81,19 +80,22 @@ void MazeScreen::handleKeyPressed(const sf::Event::KeyPressed &keyPressed) {
     }
 
     if (gameState == GameState::RUNNING) {
-        if (keyPressed.code == sf::Keyboard::Key::Left) {
-            player.makeMove(maze,'L');
-        } else if (keyPressed.code == sf::Keyboard::Key::Right) {
-            player.makeMove(maze,'P');
-        } else if (keyPressed.code == sf::Keyboard::Key::Down) {
-            player.makeMove(maze,'D');
-        } else if (keyPressed.code == sf::Keyboard::Key::Up) {
-            player.makeMove(maze,'G');
+        if (player.isHuman()) {
+            if (keyPressed.code == sf::Keyboard::Key::Left) {
+                player.makeMove(maze, 'L');
+            } else if (keyPressed.code == sf::Keyboard::Key::Right) {
+                player.makeMove(maze, 'P');
+            } else if (keyPressed.code == sf::Keyboard::Key::Down) {
+                player.makeMove(maze, 'D');
+            }
+        }
+        if (keyPressed.code == sf::Keyboard::Key::Up) {
+            player.makeMove(maze, 'G');
         } else if (keyPressed.code == sf::Keyboard::Key::Backspace) {
             player.undoMove(maze);
-        } /*else if (keyPressed.code == sf::Keyboard::isKeyPressed()) {
-
-        }*/
+        } else if (keyPressed.code == sf::Keyboard::Key::B) {
+            player.activate();
+        }
     }
     draw();
     maze.printBoard();

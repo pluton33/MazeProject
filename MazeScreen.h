@@ -45,7 +45,6 @@ private:
 
     void restartGame();
 
-
     void handleKeyPressed(const sf::Event::KeyPressed &keyPressed);
 
     void resizeView();

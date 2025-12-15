@@ -3,3 +3,7 @@
 //
 
 #include "HumanPlayer.h"
+
+void HumanPlayer::resetPosition() {
+    Player::resetPosition();
+}

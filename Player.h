@@ -18,13 +18,15 @@ public:
 
     virtual bool isHuman() = 0;
 
+    virtual void activate() {};
+
+    virtual void resetPosition();
     void makeMove(Maze &maze, char moveType);
 
     void undoMove(Maze &maze);
 
     void switchSide(const Maze &maze);
 
-    void resetPosition();
 
 
     int checkForWin(const Maze &maze) const;

@@ -107,7 +107,6 @@ void Player::switchSide(const Maze &maze) {
     row = maze.getRows() - 1;
     startSideRowNumber = row;
 }
-
 void Player::resetPosition() {
     row = 0;
     column = 0;

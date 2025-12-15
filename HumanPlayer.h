@@ -12,6 +12,8 @@ public:
     void update(Maze &maze) override {
     }
     bool isHuman() override {return true;}
+
+    void resetPosition() override;
 };
 
 

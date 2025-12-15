@@ -3,13 +3,14 @@
 #include <algorithm>
 
 // Funkcja pomocnicza isSafe musi być widoczna (może być static w klasie lub globalna w cpp)
-bool isSafe(int r, int c, int rows, int cols, const std::vector<std::string>& board) {
+bool isSafe(int r, int c, int rows, int cols, const std::vector<std::string> &board) {
     if (r < 0 || r >= rows || c < 0 || c >= cols) return false;
     if (board[c][r] == 'B') return false; // Pamiętaj o [c][r] vs [r][c] zależnie od Twojej Maze
     return true;
 }
 
 void ComputerBFTPlayer::initSearch(Maze &maze) {
+
     int rows = maze.getRows();
     int cols = maze.getCols();
 
@@ -51,7 +52,7 @@ void ComputerBFTPlayer::performBFSStep(Maze &maze) {
     // Im większa liczba pętli, tym szybsza animacja "rozlewania".
     int stepsPerFrame = 1;
 
-    for(int k=0; k<stepsPerFrame && !bfsQueue.empty(); k++) {
+    for (int k = 0; k < stepsPerFrame && !bfsQueue.empty(); k++) {
         Node curr = bfsQueue.front();
         bfsQueue.pop();
 
@@ -91,7 +92,7 @@ void ComputerBFTPlayer::performBFSStep(Maze &maze) {
         int dc[] = {1, -1, 0, 0};
         char moveChars[] = {'P', 'L', 'D', 'G'};
 
-        for(int i=0; i<4; i++) {
+        for (int i = 0; i < 4; i++) {
             // Twój warunek kierunkowy na starcie
             if (curr.r == startRow) {
                 if (startRow == 0 && moveChars[i] != 'D') continue;
@@ -117,6 +118,9 @@ void ComputerBFTPlayer::performBFSStep(Maze &maze) {
 
 void ComputerBFTPlayer::update(Maze &maze) {
     // 1. Jeśli jeszcze nie zaczęliśmy szukać - zainicjuj
+    if (!isActivated) {
+        return;
+    }
     if (!searchStarted) {
         initSearch(maze);
         return;
@@ -140,4 +144,27 @@ void ComputerBFTPlayer::update(Maze &maze) {
         makeMove(maze, path[pathIndex]);
         pathIndex++;
     }
+}
+
+
+void ComputerBFTPlayer::resetPosition() {
+    Player::resetPosition();
+
+    searchStarted = false;
+    pathFound = false;
+    pathIndex = 0;
+    path = "";
+
+    std::queue<Node> empty;
+    std::swap(bfsQueue, empty);
+
+
+    visited.clear();
+    parentMove.clear();
+
+    // 5. Decyzja: Czy po restarcie bot ma od razu ruszyć, czy czekać na 'B'?
+    // Jeśli ma czekać na klawisz B:
+    isActivated = false;
+
+    // isActivated = true; // (zostawiamy bez zmian lub ustawiamy true)
 }
