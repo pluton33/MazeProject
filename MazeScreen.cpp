@@ -4,11 +4,14 @@
 
 #include "MazeScreen.h"
 
+#include <iostream>
+
 #include "SFML/Graphics/RectangleShape.hpp"
 
 MazeScreen::MazeScreen(Maze &maze, sf::RenderWindow &window, Player &player) : maze(maze), window(window),
                                                                                virtualSize(512.0f, 512.0f),
-                                                                               player(player) {
+                                                                               player(player),
+                                                                               pathText(font) {
     virtualSize.x = 512.0f;
 
     int cols = maze.getCols();
@@ -21,6 +24,15 @@ MazeScreen::MazeScreen(Maze &maze, sf::RenderWindow &window, Player &player) : m
     virtualSize.y = cellSize * static_cast<float>(rows);
 
     resizeView();
+    if (!font.openFromFile("arial.ttf")) {
+        throw std::runtime_error("Nie można załadować czcionki");
+    }
+
+    pathText.setFont(font);
+    pathText.setCharacterSize(18);
+    pathText.setFillColor(sf::Color::White);
+    pathText.setString("");
+    pathText.setPosition({20.0f, float(window.getSize().y-25.0f)});
 }
 
 void MazeScreen::draw() const {
@@ -45,8 +57,12 @@ void MazeScreen::draw() const {
             else cellShape.setFillColor(sf::Color::Cyan);
             // window.setView(window.getDefaultView());
             window.draw(cellShape);
+
         }
+
     }
+    window.setView(window.getDefaultView());
+    window.draw(pathText);
 }
 
 void MazeScreen::handleEvents(const sf::Event &event) {
@@ -63,7 +79,8 @@ void MazeScreen::toggleBlock(int row, int col) {
 void MazeScreen::winGame() {
     gameState = GameState::PAUSED;
     pathColor = sf::Color::Green;
-    //wypisz ruchy(player.moves)
+    pathText.setString("Ruchy rozwiazania: " + player.getMoves());
+    std::cout << "ruchy gracza: " + player.getMoves() << std::endl;
 }
 
 void MazeScreen::restartGame() {
@@ -72,6 +89,7 @@ void MazeScreen::restartGame() {
     maze.printBoard();
     gameState = GameState::RUNNING;
     pathColor = sf::Color::Magenta;
+    pathText.setString("");
 }
 
 void MazeScreen::updateGame() {
@@ -119,13 +137,15 @@ void MazeScreen::resizeView() {
 
     // Obszar dostępny dla labiryntu (np. 75% szerokości okna)
     float targetWidth = windowWidth * 0.75f;
-    float targetHeight = windowHeight;
+    float targetHeight = windowHeight - 60.0f;
 
     // Oblicz proporcje labiryntu i dostępnego miejsca
     float mazeAspectRatio = virtualSize.x / virtualSize.y;
     float windowAspectRatio = targetWidth / targetHeight;
 
     float viewWidth, viewHeight;
+    window.setView(window.getDefaultView());
+    // pathText.setPosition();
 
     // Algorytm "Letterboxing" - dopasowanie z zachowaniem proporcji
     if (mazeAspectRatio > windowAspectRatio) {
@@ -140,7 +160,7 @@ void MazeScreen::resizeView() {
 
     // Centrowanie widoku w oknie
     float offsetX = (targetWidth - viewWidth) / 2.0f;
-    float offsetY = (targetHeight - viewHeight) / 2.0f;
+    float offsetY = (targetHeight - viewHeight) / 2.0f + 30.0f;
 
     // Ustawienie widoku
     view.setSize(virtualSize);
@@ -148,10 +168,14 @@ void MazeScreen::resizeView() {
 
     // Ustawienie viewportu (współrzędne znormalizowane 0.0 - 1.0)
     view.setViewport(sf::FloatRect(
-        {offsetX / windowWidth,
-        offsetY / windowHeight},
-        {viewWidth / windowWidth,
-        viewHeight / windowHeight}
+        {
+            offsetX / windowWidth,
+            offsetY / windowHeight
+        },
+        {
+            viewWidth / windowWidth,
+            viewHeight / windowHeight
+        }
     ));
 }
 

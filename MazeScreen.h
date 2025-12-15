@@ -6,7 +6,9 @@
 #define MAZEPROJECT_MAZESCREEN_H
 #include "Maze.h"
 #include "Player.h"
+#include "SFML/Graphics/Font.hpp"
 #include "SFML/Graphics/RenderWindow.hpp"
+#include "SFML/Graphics/Text.hpp"
 
 enum class GameState {
     PAUSED,
@@ -35,6 +37,8 @@ private:
     sf::View view;
     sf::Color pathColor = sf::Color::Magenta;
     sf::Vector2f virtualSize;
+    sf::Font font;
+    sf::Text pathText;
     float cellSize;
     GameState gameState;
 
