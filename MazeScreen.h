@@ -4,6 +4,7 @@
 
 #ifndef MAZEPROJECT_MAZESCREEN_H
 #define MAZEPROJECT_MAZESCREEN_H
+#include "Button.h"
 #include "Maze.h"
 #include "Player.h"
 #include "SFML/Graphics/Font.hpp"
@@ -29,6 +30,7 @@ public:
 
     void updateGame();
     void startGame();
+    std::vector<Button> buttons;
 
 private:
     Maze &maze;
@@ -52,6 +54,8 @@ private:
     void handleKeyPressed(const sf::Event::KeyPressed &keyPressed);
 
     void resizeView();
+
+    void updateMazeLayout();
 };
 
 

@@ -31,6 +31,8 @@ add_executable(MazeProject main.cpp
         HumanPlayer.cpp
         HumanPlayer.h
         ComputerBFTPlayer.cpp
-        ComputerBFTPlayer.h)
+        ComputerBFTPlayer.h
+        Button.cpp
+        Button.h)
 target_compile_features(MazeProject PRIVATE cxx_std_17)
 target_link_libraries(MazeProject PRIVATE SFML::Graphics)
