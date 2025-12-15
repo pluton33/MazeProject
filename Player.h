@@ -27,8 +27,6 @@ public:
 
     void switchSide(const Maze &maze);
 
-
-
     int checkForWin(const Maze &maze) const;
 
 protected:

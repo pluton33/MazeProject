@@ -34,7 +34,7 @@ private:
     sf::RenderWindow &window;
     sf::View view;
     sf::Color pathColor = sf::Color::Magenta;
-    const sf::Vector2f virtualSize;
+    sf::Vector2f virtualSize;
     float cellSize;
     GameState gameState;
 
