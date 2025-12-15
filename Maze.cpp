@@ -53,6 +53,13 @@ bool Maze::createBoard() {
     return true; // POPRAWKA: Zwracamy true po sukcesie
 }
 
+void Maze::printBoard() const {
+    std::cout << "-------------" << std::endl;
+    for (std::string row : board) {
+        std::cout << row << std::endl;
+    }
+}
+
 std::string Maze::randomLine(int length) {
     std::string result;
     result.reserve(length);
@@ -63,6 +70,49 @@ std::string Maze::randomLine(int length) {
     }
 
     return result;
+}
+
+bool Maze::isBlocked(int row, int col) {
+    char& cell = board[row][col];
+    if (cell == 'B') return false;
+    return true;
+}
+
+int Maze::activateCell(int row, int col) {
+    char& cell = board[row][col];
+    if (cell == 'B' || cell == 'M') {
+        cell = 'G';
+        return 1;
+    }
+    return 0;
+}
+
+int Maze::markCell(int row, int col) {
+    char& cell = board[row][col];
+    if (cell == 'B') {
+        cell = 'M';
+        return 1;
+    }
+    return 0;
+}
+
+int Maze::deactivateCell(int row, int col) {
+    char& cell = board[row][col];
+    if (cell == 'G') {
+        cell = 'B';
+        return 1;
+    }
+    return 0;
+}
+
+void Maze::clearPaths() {
+    for (int row = 0; row < rows; ++row) {
+        for (int col = 0; col < cols; ++col) {
+            if (board[row][col] != 'C') {
+                board[row][col] = 'B';
+            }
+        }
+    }
 }
 
 std::vector<std::string> Maze::getBoard() const {

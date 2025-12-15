@@ -25,6 +25,12 @@ add_executable(MazeProject main.cpp
         Maze.cpp
         Maze.h
         MazeScreen.cpp
-        MazeScreen.h)
+        MazeScreen.h
+        Player.cpp
+        Player.h
+        HumanPlayer.cpp
+        HumanPlayer.h
+        ComputerBFTPlayer.cpp
+        ComputerBFTPlayer.h)
 target_compile_features(MazeProject PRIVATE cxx_std_17)
 target_link_libraries(MazeProject PRIVATE SFML::Graphics)

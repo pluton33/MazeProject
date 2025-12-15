@@ -15,18 +15,28 @@ public:
     bool readBoard();
     bool createBoard();
 
+    void printBoard() const;
+
     std::vector<std::string> getBoard() const;
     int getRows() const;
     int getCols() const;
 
-    // Metoda pomocnicza, mogła być prywatna, ale zostawiam publiczną zgodnie z oryginałem
     std::string randomLine(int length);
 
+    bool isBlocked(int row, int col);
+    int activateCell(int row, int col);
+
+    int markCell(int row, int col);
+
+    int deactivateCell(int row, int col);
+
+    void clearPaths();
 private:
     std::string filename;
     std::vector<std::string> board;
     int rows;
     int cols;
+
 };
 
 
