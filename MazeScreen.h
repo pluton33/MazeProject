@@ -4,9 +4,12 @@
 
 #ifndef MAZEPROJECT_MAZESCREEN_H
 #define MAZEPROJECT_MAZESCREEN_H
+#include "Button.h"
 #include "Maze.h"
 #include "Player.h"
+#include "SFML/Graphics/Font.hpp"
 #include "SFML/Graphics/RenderWindow.hpp"
+#include "SFML/Graphics/Text.hpp"
 
 enum class GameState {
     PAUSED,
@@ -27,6 +30,7 @@ public:
 
     void updateGame();
     void startGame();
+    std::vector<Button> buttons;
 
 private:
     Maze &maze;
@@ -34,7 +38,9 @@ private:
     sf::RenderWindow &window;
     sf::View view;
     sf::Color pathColor = sf::Color::Magenta;
-    const sf::Vector2f virtualSize;
+    sf::Vector2f virtualSize;
+    sf::Font font;
+    sf::Text pathText;
     float cellSize;
     GameState gameState;
 
@@ -48,6 +54,8 @@ private:
     void handleKeyPressed(const sf::Event::KeyPressed &keyPressed);
 
     void resizeView();
+
+    void updateMazeLayout();
 };
 
 

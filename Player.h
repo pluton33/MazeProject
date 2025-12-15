@@ -27,9 +27,11 @@ public:
 
     void switchSide(const Maze &maze);
 
-
-
     int checkForWin(const Maze &maze) const;
+
+    std::string getMoves() const {
+        return moves;
+    }
 
 protected:
     std::string moves;

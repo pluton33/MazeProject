@@ -7,11 +7,10 @@
 #include <fstream>
 #include <iostream>
 
-Maze::Maze(const std::string &filename, int rows, int cols) : filename(filename), rows(rows), cols(cols) {}
 
-Maze::Maze(int rows, int cols) : filename(""), rows(rows), cols(cols) {};
+Maze::Maze(int rows, int cols) : rows(rows), cols(cols) {};
 
-bool Maze::readBoard() {
+bool Maze::readBoard(const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
         std::cerr << "Nie mozna otworzyc pliku: " << filename << std::endl;
@@ -43,14 +42,16 @@ bool Maze::readBoard() {
     return true;
 }
 
-bool Maze::createBoard() {
+bool Maze::createBoard(int x, int y) {
+    rows = y;
+    cols = x;
     board.clear(); // Czyścimy na wszelki wypadek
     std::string line;
-    for (int i = 0; i < rows; ++i) {
-        line = randomLine(this->cols);
+    for (int i = 0; i < y; ++i) {
+        line = randomLine(x);
         board.push_back(line);
     }
-    return true; // POPRAWKA: Zwracamy true po sukcesie
+    return true;
 }
 
 void Maze::printBoard() const {

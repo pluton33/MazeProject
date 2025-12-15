@@ -9,11 +9,14 @@
 
 class Maze {
 public:
-    Maze(const std::string& filename = "", int rows = 0, int cols = 0);
     Maze(int rows = 0, int cols = 0);
 
-    bool readBoard();
-    bool createBoard();
+    bool readBoard(const std::string& filename);
+    bool createBoard(int x, int y);
+    bool createBoard() {
+        createBoard(cols, rows);
+        return true;
+    };
 
     void printBoard() const;
 
@@ -32,7 +35,6 @@ public:
 
     void clearPaths();
 private:
-    std::string filename;
     std::vector<std::string> board;
     int rows;
     int cols;

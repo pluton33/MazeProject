@@ -16,8 +16,8 @@ int main() {
     // HumanPlayer seba;
     //
     ComputerBFTPlayer seba;
-    Maze maze("input.txt");
-    if (!maze.readBoard()) {
+    Maze maze = Maze();
+    if (!maze.readBoard("input.txt")) {
         std::cout << "Generuje losowy labirynt 20x15." << std::endl;
         maze = Maze(20, 15);
         maze.createBoard();
@@ -30,7 +30,7 @@ int main() {
     MazeScreen mazeScreen(maze, window, seba);
     mazeScreen.startGame();
     while (window.isOpen()) {
-        // window.setFramerateLimit(50);
+        // window.setFramerateLimit(120);
         while (const std::optional event = window.pollEvent()) {
 
             if (event->is<sf::Event::Closed>()) {
