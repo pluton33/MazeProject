@@ -19,19 +19,17 @@ bool Maze::readBoard(const std::string& filename) {
 
     file >> rows >> cols;
     board.clear();
-    // Ważne: po wczytaniu liczb, trzeba "zjeść" znak nowej linii, zanim użyjemy getline
     std::string dummy;
     std::getline(file, dummy);
 
     std::string line;
     for (int i = 0; i < rows; ++i) {
         std::getline(file, line);
-        // Zabezpieczenie na wypadek pustych linii na końcu pliku
+
         if (line.empty()) { i--; continue; }
 
         if (line.length() != static_cast<size_t>(cols)) {
-            // Czasami edytory dodają niewidoczne znaki \r na końcu (Windows vs Mac), ignorujemy to dla prostoty
-            // w bardziej zaawansowanym kodzie należałoby to oczyścić.
+
             if (line.length() < static_cast<size_t>(cols)) {
                  std::cerr << "Bledny rzad w linii " << i+2 << " Dlugosc: " << line.length() << std::endl;
                  return false;
@@ -45,7 +43,7 @@ bool Maze::readBoard(const std::string& filename) {
 bool Maze::createBoard(int x, int y) {
     rows = y;
     cols = x;
-    board.clear(); // Czyścimy na wszelki wypadek
+    board.clear();
     std::string line;
     for (int i = 0; i < y; ++i) {
         line = randomLine(x);
@@ -66,7 +64,7 @@ std::string Maze::randomLine(int length) {
     result.reserve(length);
 
     for (size_t i = 0; i < length; ++i) {
-        // 'b' - ściana (block), 'c' - korytarz (corridor)
+
         result += (rand() % 3 != 0) ? 'B' : 'C';
     }
 

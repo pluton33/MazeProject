@@ -33,43 +33,38 @@ MazeScreen::MazeScreen(Maze &maze, sf::RenderWindow &window, Player &player) : m
     buttons.push_back(botBtn);
     Button loadBtn(160.f, 40.f, "Wczytaj z Pliku", font);
     loadBtn.setOnClick([this]() {
-        // Blokujemy grę i pytamy w konsoli
         std::string filename;
         std::cout << "\n--- WCZYTYWANIE LABIRYNTU ---" << std::endl;
         std::cout << "Podaj nazwe pliku (np. input.txt): ";
         std::cin >> filename;
 
-        // Tutaj wywołaj Twoją funkcję z klasy Maze
-        // Zakładam, że masz metodę np. loadFromFile lub readFromFile
-        if (this->maze.readBoard(filename)) { // Załóżmy, że zwraca true jak się uda
+
+        if (this->maze.readBoard(filename)) {
              std::cout << "Udalo sie wczytac!" << std::endl;
              this->restartGame();
-            updateMazeLayout();// Resetujemy pozycję gracza i stan gry
+            updateMazeLayout();
         } else {
              std::cout << "Blad: Nie udalo sie otworzyc pliku." << std::endl;
         }
     });
     buttons.push_back(loadBtn);
 
-    // --- 4. Przycisk GENERUJ WŁASNY (Nowość) ---
+
     Button genBtn(160.f, 40.f, "Generuj Wlasny", font);
     genBtn.setOnClick([this]() {
         int w, h;
         std::cout << "\n--- GENEROWANIE LABIRYNTU ---" << std::endl;
         std::cout << "Podaj liczbe kolumn (szerokosc): ";
-        std::cin >> w;
-        std::cout << "Podaj liczbe wierszy (wysokosc): ";
         std::cin >> h;
+        std::cout << "Podaj liczbe wierszy (wysokosc): ";
+        std::cin >> w;
 
-        // Walidacja, żeby nie wysadzić programu
+
         if (w < 5 || h < 5) {
             std::cout << "Za male wymiary! Minimum 5x5." << std::endl;
             return;
         }
 
-        // Wywołaj Twoją funkcję generującą
-        // Zakładam, że masz metodę np. generate(rows, cols)
-        // Pamiętaj o kolejności argumentów w Twojej funkcji!
         this->maze.createBoard(h, w);
 
         std::cout << "Wygenerowano nowy labirynt " << w << "x" << h << std::endl;
@@ -78,10 +73,10 @@ MazeScreen::MazeScreen(Maze &maze, sf::RenderWindow &window, Player &player) : m
     });
     buttons.push_back(genBtn);
 
-    // Obliczamy rozmiar komórki na podstawie szerokości
+
     cellSize = virtualSize.x / static_cast<float>(cols);
 
-    // POPRAWKA: Dostosuj wysokość wirtualną do liczby wierszy
+
     virtualSize.y = cellSize * static_cast<float>(rows);
 
 
