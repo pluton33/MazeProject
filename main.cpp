@@ -15,7 +15,9 @@ int main() {
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
     // HumanPlayer seba;
     //
-    ComputerBFTPlayer seba;
+    // ComputerBFTPlayer seba;
+    // Tworzymy inteligentny wskaźnik:
+    std::shared_ptr<Player> seba = std::make_shared<HumanPlayer>();
     Maze maze = Maze();
     if (!maze.readBoard("input.txt")) {
         std::cout << "Generuje losowy labirynt 20x15." << std::endl;

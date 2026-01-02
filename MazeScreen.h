@@ -4,59 +4,66 @@
 
 #ifndef MAZEPROJECT_MAZESCREEN_H
 #define MAZEPROJECT_MAZESCREEN_H
-#include "Button.h"
+
+#include <SFML/Graphics.hpp>
+#include <vector>
+#include <memory> // Dodano dla shared_ptr
 #include "Maze.h"
 #include "Player.h"
-#include "SFML/Graphics/Font.hpp"
-#include "SFML/Graphics/RenderWindow.hpp"
-#include "SFML/Graphics/Text.hpp"
+#include "Button.h"
 
-enum class GameState {
-    PAUSED,
-    RUNNING,
-};
+// Dołączamy nagłówki, by móc tworzyć instancje
+#include "ComputerBFTPlayer.h"
+#include "ComputerDFSPlayer.h"
+#include "ComputerRandomPlayer.h"
+#include "HumanPlayer.h"
 
 class MazeScreen {
+private:
+    Maze &maze;
+    sf::RenderWindow &window;
+    sf::Vector2f virtualSize;
+
+    // ZMIANA: Zamiast referencji, używamy shared_ptr, by móc podmieniać obiekt
+    std::shared_ptr<Player> player;
+
+    sf::Font font;
+    std::vector<Button> buttons;
+    sf::Text pathText;
+    float cellSize;
+    sf::View view;
+    sf::Color pathColor = sf::Color::Magenta;
+
+    enum class GameState {
+        RUNNING,
+        PAUSED,
+        WIN
+    };
+    GameState gameState = GameState::RUNNING;
+
+    void handleKeyPressed(const sf::Event::KeyPressed &keyPressed);
+    void winGame();
+
+    // Metody pomocnicze do UI
+    void loadMainMenu();
+    void loadSolverMenu();
+
 public:
-    MazeScreen(Maze &maze, sf::RenderWindow &window, Player &player);
-
-    void draw() const;
-
-    void handleEvents(const sf::Event &event);
-
     sf::View getView() const {
         return view;
     }
 
+    // ZMIANA: Konstruktor przyjmuje shared_ptr
+    MazeScreen(Maze &maze, sf::RenderWindow &window, std::shared_ptr<Player> player);
+
+    void draw() const;
+    void handleEvents(const sf::Event &event);
     void updateGame();
-    void startGame();
-    std::vector<Button> buttons;
-
-private:
-    Maze &maze;
-    Player &player;
-    sf::RenderWindow &window;
-    sf::View view;
-    sf::Color pathColor = sf::Color::Magenta;
-    sf::Vector2f virtualSize;
-    sf::Font font;
-    sf::Text pathText;
-    float cellSize;
-    GameState gameState;
-
-
-    void toggleBlock(int row, int col);
-
-    void winGame();
-
-    void restartGame();
-
-    void handleKeyPressed(const sf::Event::KeyPressed &keyPressed);
-
     void resizeView();
-
     void updateMazeLayout();
+    void restartGame();
+    void toggleBlock(int row, int col);
+    void startGame();
 };
-
 
 #endif //MAZEPROJECT_MAZESCREEN_H

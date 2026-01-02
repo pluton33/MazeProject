@@ -5,18 +5,40 @@
 #include "MazeScreen.h"
 
 #include <iostream>
-
 #include "Button.h"
 #include "SFML/Graphics/RectangleShape.hpp"
 
-MazeScreen::MazeScreen(Maze &maze, sf::RenderWindow &window, Player &player) : maze(maze), window(window),
-                                                                               virtualSize(512.0f, 512.0f),
-                                                                               player(player),
-                                                                               pathText(font) {
-    virtualSize.x = 512.0f;
+// Konstruktor zaktualizowany o shared_ptr
+MazeScreen::MazeScreen(Maze &maze, sf::RenderWindow &window, std::shared_ptr<Player> player)
+    : maze(maze), window(window), virtualSize(512.0f, 512.0f), player(player), pathText(font) {
 
+    virtualSize.x = 512.0f;
     int cols = maze.getCols();
     int rows = maze.getRows();
+
+    if (!font.openFromFile("arial.ttf")) {
+        // W razie błędu, spróbujmy załadować domyślną, żeby nie wywalić programu od razu
+        // (opcjonalne zabezpieczenie)
+        std::cerr << "Nie mozna zaladowac czcionki arial.ttf" << std::endl;
+    }
+
+    pathText.setFont(font);
+    pathText.setCharacterSize(18);
+    pathText.setFillColor(sf::Color::White);
+    pathText.setString("");
+    pathText.setPosition({20.0f, float(window.getSize().y-25.0f)});
+
+    cellSize = virtualSize.x / static_cast<float>(cols);
+    virtualSize.y = cellSize * static_cast<float>(rows);
+
+    // Inicjalizacja głównego menu przycisków
+    loadMainMenu();
+
+    resizeView();
+}
+
+void MazeScreen::loadMainMenu() {
+    buttons.clear();
 
     Button restartBtn(160.f, 40.f, "Reset", font);
     restartBtn.setOnClick([this]() {
@@ -25,19 +47,22 @@ MazeScreen::MazeScreen(Maze &maze, sf::RenderWindow &window, Player &player) : m
         this->restartGame();
     });
     buttons.push_back(restartBtn);
-    Button botBtn(160.f, 40.f, "Rozwiaz", font);
+
+    // ZMIANA: Przycisk Rozwiaz teraz otwiera menu wyboru
+    Button botBtn(160.f, 40.f, "Rozwiaz...", font);
     botBtn.setOnClick([this]() {
-        std::cout << "Bot aktywowany!" << std::endl;
-        this->player.activate();
+        std::cout << "Otwieranie menu algorytmow..." << std::endl;
+        this->loadSolverMenu();
+        this->resizeView(); // Odswiez pozycje przyciskow
     });
     buttons.push_back(botBtn);
+
     Button loadBtn(160.f, 40.f, "Wczytaj z Pliku", font);
     loadBtn.setOnClick([this]() {
         std::string filename;
         std::cout << "\n--- WCZYTYWANIE LABIRYNTU ---" << std::endl;
         std::cout << "Podaj nazwe pliku (np. input.txt): ";
         std::cin >> filename;
-
 
         if (this->maze.readBoard(filename)) {
              std::cout << "Udalo sie wczytac!" << std::endl;
@@ -49,7 +74,6 @@ MazeScreen::MazeScreen(Maze &maze, sf::RenderWindow &window, Player &player) : m
     });
     buttons.push_back(loadBtn);
 
-
     Button genBtn(160.f, 40.f, "Generuj Wlasny", font);
     genBtn.setOnClick([this]() {
         int w, h;
@@ -59,48 +83,70 @@ MazeScreen::MazeScreen(Maze &maze, sf::RenderWindow &window, Player &player) : m
         std::cout << "Podaj liczbe wierszy (wysokosc): ";
         std::cin >> w;
 
-
         if (w < 5 || h < 5) {
             std::cout << "Za male wymiary! Minimum 5x5." << std::endl;
             return;
         }
-
         this->maze.createBoard(h, w);
-
         std::cout << "Wygenerowano nowy labirynt " << w << "x" << h << std::endl;
         this->restartGame();
         updateMazeLayout();
     });
     buttons.push_back(genBtn);
+}
 
+void MazeScreen::loadSolverMenu() {
+    buttons.clear();
 
-    cellSize = virtualSize.x / static_cast<float>(cols);
+    // 1. Algorytm BFS (istniejący)
+    Button bfsBtn(160.f, 40.f, "Algorytm BFS", font);
+    bfsBtn.setOnClick([this]() {
+        std::cout << "Wybrano BFS" << std::endl;
+        // Podmiana gracza
+        this->player = std::make_shared<ComputerBFTPlayer>();
+        this->player->resetPosition();
+        this->player->activate();
+        this->loadMainMenu(); // Powrót do menu
+        this->resizeView();
+    });
+    buttons.push_back(bfsBtn);
 
+    // 2. Algorytm DFS (nowy)
+    Button dfsBtn(160.f, 40.f, "Algorytm DFS", font);
+    dfsBtn.setOnClick([this]() {
+        std::cout << "Wybrano DFS" << std::endl;
+        this->player = std::make_shared<ComputerDFSPlayer>();
+        this->player->resetPosition();
+        this->player->activate();
+        this->loadMainMenu();
+        this->resizeView();
+    });
+    buttons.push_back(dfsBtn);
 
-    virtualSize.y = cellSize * static_cast<float>(rows);
+    // 3. Algorytm Random (nowy)
+    Button rndBtn(160.f, 40.f, "Algorytm Random", font);
+    rndBtn.setOnClick([this]() {
+        std::cout << "Wybrano Random" << std::endl;
+        this->player = std::make_shared<ComputerRandomPlayer>();
+        this->player->resetPosition();
+        this->player->activate();
+        this->loadMainMenu();
+        this->resizeView();
+    });
+    buttons.push_back(rndBtn);
 
-
-    if (!font.openFromFile("arial.ttf")) {
-        throw std::runtime_error("Nie można załadować czcionki");
-    }
-
-    pathText.setFont(font);
-    pathText.setCharacterSize(18);
-    pathText.setFillColor(sf::Color::White);
-    pathText.setString("");
-    pathText.setPosition({20.0f, float(window.getSize().y-25.0f)});
-    resizeView();
-
-
+    // 4. Anuluj
+    Button cancelBtn(160.f, 40.f, "Anuluj", font);
+    cancelBtn.setOnClick([this]() {
+        this->loadMainMenu();
+        this->resizeView();
+    });
+    buttons.push_back(cancelBtn);
 }
 
 void MazeScreen::draw() const {
     int rows = maze.getRows();
     int cols = maze.getCols();
-
-    // float cellWidth = static_cast<float>(WINDOW_WIDTH) / cols;
-    // float cellHeight = static_cast<float>(WINDOW_HEIGHT) / rows;
-    // player.update(maze);
 
     sf::RectangleShape cellShape(sf::Vector2f(cellSize - 2.0f, cellSize - 2.0f));
     for (int row = 0; row < rows; ++row) {
@@ -114,11 +160,9 @@ void MazeScreen::draw() const {
             else if (cell == 'G') cellShape.setFillColor(pathColor);
             else if (cell == 'M') cellShape.setFillColor(sf::Color::Blue);
             else cellShape.setFillColor(sf::Color::Cyan);
-            // window.setView(window.getDefaultView());
+
             window.draw(cellShape);
-
         }
-
     }
     window.setView(window.getDefaultView());
     window.draw(pathText);
@@ -138,10 +182,9 @@ void MazeScreen::handleEvents(const sf::Event &event) {
             sf::Vector2f mousePos = window.mapPixelToCoords(mouse->position);
             for (const auto& btn : buttons) {
                 if (btn.checkClick(mousePos)) {
-                    break; // Kliknięto, przerywamy sprawdzanie reszty
+                    break;
                 }
             }
-
         }
     }
 }
@@ -152,13 +195,18 @@ void MazeScreen::toggleBlock(int row, int col) {
 void MazeScreen::winGame() {
     gameState = GameState::PAUSED;
     pathColor = sf::Color::Green;
-    pathText.setString("Ruchy rozwiazania: " + player.getMoves());
-    std::cout << "ruchy gracza: " + player.getMoves() << std::endl;
+    pathText.setString("Ruchy rozwiazania: " + player->getMoves());
+    std::cout << "ruchy gracza: " + player->getMoves() << std::endl;
 }
 
 void MazeScreen::restartGame() {
-    player.resetPosition();
-    // maze.createBoard();
+    // Resetujemy gracza do ludzkiego przy pełnym restarcie,
+    // albo resetujemy pozycje obecnego bota?
+    // Zwykle restart gry to powrót do początku.
+    // Jeśli chcemy wrócić do sterowania ręcznego:
+    this->player = std::make_shared<HumanPlayer>();
+
+    player->resetPosition();
     maze.printBoard();
     gameState = GameState::RUNNING;
     pathColor = sf::Color::Magenta;
@@ -167,8 +215,8 @@ void MazeScreen::restartGame() {
 
 void MazeScreen::updateGame() {
     if (gameState == GameState::RUNNING) {
-        player.update(maze);
-        if (player.checkForWin(maze)) {
+        player->update(maze); // Użycie strzałki zamiast kropki (wskaźnik)
+        if (player->checkForWin(maze)) {
             winGame();
         }
     }
@@ -180,26 +228,28 @@ void MazeScreen::handleKeyPressed(const sf::Event::KeyPressed &keyPressed) {
     }
 
     if (gameState == GameState::RUNNING) {
-        if (/*player.isHuman()*/ true) {
+        if (player->isHuman()) { // Użycie wskaźnika
             if (keyPressed.code == sf::Keyboard::Key::Left) {
-                player.makeMove(maze, 'L');
+                player->makeMove(maze, 'L');
             } else if (keyPressed.code == sf::Keyboard::Key::Right) {
-                player.makeMove(maze, 'P');
+                player->makeMove(maze, 'P');
             } else if (keyPressed.code == sf::Keyboard::Key::Down) {
-                player.makeMove(maze, 'D');
+                player->makeMove(maze, 'D');
+            } else if (keyPressed.code == sf::Keyboard::Key::Up) {
+                player->makeMove(maze, 'G');
+            } else if (keyPressed.code == sf::Keyboard::Key::Backspace) {
+                player->undoMove(maze);
             }
         }
-        if (keyPressed.code == sf::Keyboard::Key::Up) {
-            player.makeMove(maze, 'G');
-        } else if (keyPressed.code == sf::Keyboard::Key::Backspace) {
-            player.undoMove(maze);
-        } else if (keyPressed.code == sf::Keyboard::Key::B) {
-            player.activate();
+
+        // Klawisz B może aktywować obecnego bota (jeśli jest ustawiony)
+        if (keyPressed.code == sf::Keyboard::Key::B) {
+            player->activate();
         }
     }
     draw();
     maze.printBoard();
-    if (player.checkForWin(maze)) {
+    if (player->checkForWin(maze)) {
         winGame();
     }
 }
@@ -208,82 +258,53 @@ void MazeScreen::resizeView() {
     float windowWidth = static_cast<float>(window.getSize().x);
     float windowHeight = static_cast<float>(window.getSize().y);
 
-    // Obszar dostępny dla labiryntu (np. 75% szerokości okna)
     float targetWidth = windowWidth * 0.75f;
     float targetHeight = windowHeight - 60.0f;
 
-    // Oblicz proporcje labiryntu i dostępnego miejsca
     float mazeAspectRatio = virtualSize.x / virtualSize.y;
     float windowAspectRatio = targetWidth / targetHeight;
 
     float viewWidth, viewHeight;
     window.setView(window.getDefaultView());
-    // pathText.setPosition();
 
-    // Algorytm "Letterboxing" - dopasowanie z zachowaniem proporcji
     if (mazeAspectRatio > windowAspectRatio) {
-        // Labirynt jest szerszy niż okno - dopasuj do szerokości
         viewWidth = targetWidth;
         viewHeight = targetWidth / mazeAspectRatio;
     } else {
-        // Labirynt jest wyższy niż okno - dopasuj do wysokości
         viewHeight = targetHeight;
         viewWidth = targetHeight * mazeAspectRatio;
     }
 
-    // Centrowanie widoku w oknie
     float offsetX = (targetWidth - viewWidth) / 2.0f;
     float offsetY = (targetHeight - viewHeight) / 2.0f + 30.0f;
 
-    // Ustawienie widoku
     view.setSize(virtualSize);
     view.setCenter(sf::Vector2f(virtualSize.x / 2.0f, virtualSize.y / 2.0f));
 
-    // Ustawienie viewportu (współrzędne znormalizowane 0.0 - 1.0)
     view.setViewport(sf::FloatRect(
-        {
-            offsetX / windowWidth,
-            offsetY / windowHeight
-        },
-        {
-            viewWidth / windowWidth,
-            viewHeight / windowHeight
-        }
+        { offsetX / windowWidth, offsetY / windowHeight },
+        { viewWidth / windowWidth, viewHeight / windowHeight }
     ));
+
     float btnMargin = 20.0f;
     float startY = 50.0f;
+    float gap = 50.0f;
 
-    // Sprawdzamy czy mamy przyciski, żeby nie wyjść poza zakres
-    if (buttons.size() >= 2) {
-
-        buttons[0].setPosition({window.getSize().y - 40.f - btnMargin, startY});
-
-
-        buttons[1].setPosition({window.getSize().y - 40.f - btnMargin, startY + 50.0f});
-
-        buttons[2].setPosition({window.getSize().y - 40.f - btnMargin, startY + 100.0f});
-
-        // Przycisk 3: Generuj Własny
-        buttons[3].setPosition({window.getSize().y - 40.f - btnMargin, startY + 150.0f});
+    // Pozycjonowanie przycisków dynamicznie, niezależnie ile ich jest (Menu vs Solver)
+    for (size_t i = 0; i < buttons.size(); ++i) {
+         buttons[i].setPosition({window.getSize().y - 40.f - btnMargin, startY + (i * gap)});
     }
 }
+
 void MazeScreen::updateMazeLayout() {
     int cols = maze.getCols();
     int rows = maze.getRows();
-
-    // Zabezpieczenie przed dzieleniem przez zero
     if (cols == 0) cols = 1;
-
-    // 1. Przeliczamy rozmiar komórki na podstawie nowej liczby kolumn
-    // virtualSize.x jest stałe (512.0f)
     cellSize = virtualSize.x / static_cast<float>(cols);
-
-    // 2. Aktualizujemy wysokość wirtualnego świata
     virtualSize.y = cellSize * static_cast<float>(rows);
-
-    // 3. Wymuszamy odświeżenie widoku (kamery), żeby uwzględnił nowe proporcje
     resizeView();
 }
+
 void MazeScreen::startGame() {
     gameState = GameState::RUNNING;
 }

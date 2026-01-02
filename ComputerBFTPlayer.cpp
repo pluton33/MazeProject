@@ -3,12 +3,6 @@
 #include <algorithm>
 
 
-bool isSafe(int r, int c, int rows, int cols, const std::vector<std::string> &board) {
-    if (r < 0 || r >= rows || c < 0 || c >= cols) return false;
-    if (board[c][r] == 'B') return false;
-    return true;
-}
-
 void ComputerBFTPlayer::initSearch(Maze &maze) {
 
     int rows = maze.getRows();
