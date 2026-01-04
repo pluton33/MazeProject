@@ -7,6 +7,7 @@ void ComputerBFTPlayer::initSearch(Maze &maze) {
 
     int rows = maze.getRows();
     int cols = maze.getCols();
+    // switchSide(maze);
 
 
     visited.assign(rows, std::vector<bool>(cols, false));

@@ -73,7 +73,7 @@ std::string Maze::randomLine(int length) {
 
 bool Maze::isBlocked(int row, int col) {
     char& cell = board[row][col];
-    if (cell == 'B') return false;
+    if (cell == 'B' || cell == 'M') return false;
     return true;
 }
 
