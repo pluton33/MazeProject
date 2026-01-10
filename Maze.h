@@ -16,7 +16,9 @@ public:
     bool createBoard() {
         createBoard(cols, rows);
         return true;
-    };
+    }
+
+    void changeWall(int row, int col);;
 
     void printBoard() const;
 

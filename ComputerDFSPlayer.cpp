@@ -8,28 +8,37 @@ void ComputerDFSPlayer::initSearch(Maze &maze) {
     int cols = maze.getCols();
 
     visited.assign(rows, std::vector<bool>(cols, false));
-    parentMove.assign(rows, std::vector<char>(cols, 0));
+    parentMove.assign(rows, std::vector<char>(cols, 0)); // Wyzerowanie
 
     std::stack<DFSNode> empty;
     std::swap(dfsStack, empty);
 
-
-
-    // POPRAWKA 1: Startujemy fizycznie tam gdzie stoi gracz
     startRow = this->row;
     endRow = (startSideRowNumber == 0) ? rows - 1 : 0;
 
-    dfsStack.push({startRow, column});
-    visited[startRow][column] = true;
-    maze.markCell(startRow, column);
-    std::cout << "Mark cell init:" << startRow << ' ' << column << std::endl;
+    // --- SKANOWANIE WSZYSTKICH WEJŚĆ ---
+    bool foundEntrance = false;
+    for (int c = cols - 1 ; c >= 0; c--) {
+        // Jeśli pole jest wolne, dodajemy je jako potencjalny punkt startowy
+        if (!maze.isBlocked(startRow, c)) {
+            dfsStack.push({startRow, c});
+            visited[startRow][c] = true;
+            maze.markCell(startRow, c); // Oznaczamy wizualnie
+            foundEntrance = true;
+        }
+    }
+
+    if (!foundEntrance) {
+        std::cout << "UWAGA: Rzad startowy jest calkowicie zamurowany!" << std::endl;
+        // Opcjonalnie: można tu zakończyć grę lub wymusić start w ścianie (jak wolisz)
+    }
 
     searchStarted = true;
 }
 
 void ComputerDFSPlayer::performDFSStep(Maze &maze) {
     if (dfsStack.empty()) {
-        std::cout << "DFS: brak wyjścia lub stos pusty\n";
+        std::cout << "DFS: brak wyjścia (sprawdzono wszystkie opcje)\n";
         return;
     }
 
@@ -41,10 +50,14 @@ void ComputerDFSPlayer::performDFSStep(Maze &maze) {
         int r = curr.r;
         int c = curr.c;
 
-        // Rekonstrukcja ścieżki
-        while (r != startRow || c != column) {
+        // --- REKONSTRUKCJA ---
+        // Cofamy się do momentu, aż parentMove == 0.
+        // Ponieważ w initSearch nie ustawiliśmy parentMove dla punktów startowych,
+        // pętla zatrzyma się dokładnie na tym polu startowym, z którego wyszła zwycięska ścieżka.
+        while (true) {
             char mv = parentMove[r][c];
-            if (mv == 0) break;
+            if (mv == 0) break; // STOP - dotarliśmy do startu
+
             path.push_back(mv);
 
             if (mv == 'G') r++;
@@ -54,6 +67,14 @@ void ComputerDFSPlayer::performDFSStep(Maze &maze) {
         }
 
         std::reverse(path.begin(), path.end());
+
+        // --- SYNCHRONIZACJA ---
+        // Zmienne r i c wskazują teraz na ZWYCIĘSKIE wejście.
+        // Przenosimy tam gracza.
+        this->row = r;
+        this->column = c;
+
+        // Dodajemy ruch wejściowy (D/G)
         char entryChar = (startRow == 0) ? 'D' : 'G';
 
         size_t entryPos = path.find(entryChar);
@@ -63,6 +84,7 @@ void ComputerDFSPlayer::performDFSStep(Maze &maze) {
             // Np. z "D..." zrobi się "DD..."
             path.insert(entryPos, 1, entryChar);
         }
+
         pathFound = true;
         pathIndex = 0;
 
@@ -71,10 +93,7 @@ void ComputerDFSPlayer::performDFSStep(Maze &maze) {
         return;
     }
 
-    // --- DEFINICJA RUCHÓW (Priorytet: Dół) ---
-
-    // Kolejność: Dół, Lewo, Prawo, Góra
-    // WAŻNE: Ostatnia wartość dr (dla G) to -1!
+    // --- RUCHY ---
     int dr[4] = {1, 0, 0, -1};
     int dc[4] = {0, -1, 1, 0};
     char mv[4] = {'D', 'L', 'P', 'G'};
@@ -82,52 +101,25 @@ void ComputerDFSPlayer::performDFSStep(Maze &maze) {
     bool moved = false;
 
     for (int i = 0; i < 4; i++) {
-        if (curr.r == startRow && i == 0 && maze.isBlocked(curr.r,curr.c)) continue;
         int nr = curr.r + dr[i];
         int nc = curr.c + dc[i];
 
-        if (!maze.isBlocked(curr.r, curr.c))std::cout << "aktualny rzad i kolumna: (" << curr.r << " " << curr.c
-                  << ") nastepny rzad i kolumna: (" << nr << " " << nc << ")" << std::endl;
+        if (nr < 0 || nr >= maze.getRows() || nc < 0 || nc >= maze.getCols()) continue;
+        if (visited[nr][nc]) continue;
+        if (maze.isBlocked(nr, nc)) continue;
 
-        // 1. Sprawdzanie granic
-        if (nr < 0 || nr >= maze.getRows() || nc < 0 || nc >= maze.getCols())
-            continue;
+        visited[nr][nc] = true;
+        parentMove[nr][nc] = mv[i];
 
-        // 2. Jeśli już odwiedzone - pomiń
-        if (visited[nr][nc])
-            continue;
+        dfsStack.push({nr, nc});
+        maze.markCell(nr, nc);
 
-        // 3. Sprawdzanie ścian
-        bool allowed = false;
-
-        // WYJĄTEK DLA STARTU:
-        // Jeśli jesteśmy w rzędzie startowym i idziemy w bok (nr == startRow),
-        // to ignorujemy ściany. Pozwala to znaleźć wejście oddalone od gracza.
-        // Jeśli jednak próbujemy zejść w dół (nr != startRow), to szanujemy ściany.
-        if (curr.r == startRow && nr == startRow) {
-            allowed = true;
-        } else {
-            allowed = !maze.isBlocked(nr, nc);
-        }
-
-        if (allowed) {
-            visited[nr][nc] = true;
-            parentMove[nr][nc] = mv[i];
-
-            dfsStack.push({nr, nc});
-            int sup = maze.markCell(nr, nc); // Wizualizacja (może zamalować ścianę w rzędzie 0, jeśli szuka wejścia)
-            if ( sup)std::cout << "Mark cell performStep:" << nr << ' ' << nc << std::endl;
-
-            moved = true;
-            break; // Przerywamy pętlę - w DFS idziemy w głąb pierwszego znalezionego
-        }
+        moved = true;
+        break;
     }
 
-    // --- BACKTRACKING ---
     if (!moved) {
         dfsStack.pop();
-        // Jeśli masz funkcję do czyszczenia koloru, możesz ją tu dodać:
-        // maze.restoreCell(curr.r, curr.c);
     }
 }
 

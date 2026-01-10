@@ -26,6 +26,7 @@ private:
     std::vector<std::vector<char>> parentMove;
     int startRow;
     int endRow;
+    int startCol;
     // -------------------------------------------------------
 
     void initSearch(Maze &maze);

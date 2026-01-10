@@ -32,7 +32,7 @@ int main() {
     MazeScreen mazeScreen(maze, window, seba);
     mazeScreen.startGame();
     while (window.isOpen()) {
-        // window.setFramerateLimit(6);
+        window.setFramerateLimit(60);
         while (const std::optional event = window.pollEvent()) {
 
             if (event->is<sf::Event::Closed>()) {

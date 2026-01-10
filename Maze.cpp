@@ -52,6 +52,11 @@ bool Maze::createBoard(int x, int y) {
     return true;
 }
 
+void Maze::changeWall(int row, int col) {
+    char& cell = board[row][col];
+    if (cell == 'B') cell = 'C'; else if (cell == 'C') cell = 'B';
+}
+
 void Maze::printBoard() const {
     std::cout << "-------------" << std::endl;
     for (std::string row : board) {

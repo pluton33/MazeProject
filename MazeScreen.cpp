@@ -93,6 +93,20 @@ void MazeScreen::loadMainMenu() {
         updateMazeLayout();
     });
     buttons.push_back(genBtn);
+
+    Button resetBtn(160.f, 40.f, "Reset", font);
+    resetBtn.setOnClick([this]() {
+        this->loadMainMenu();
+        this->resizeView();
+        this->player = std::make_shared<HumanPlayer>();
+        pathColor = sf::Color::Magenta;
+        maze.clearPaths();
+        player->resetPosition();
+        player->activate();
+        gameState = GameState::RUNNING;
+
+    });
+    buttons.push_back(resetBtn);
 }
 
 void MazeScreen::loadSolverMenu() {
@@ -179,10 +193,28 @@ void MazeScreen::handleEvents(const sf::Event &event) {
     }
     if (const sf::Event::MouseButtonPressed* mouse = event.getIf<sf::Event::MouseButtonPressed>()) {
         if (mouse->button == sf::Mouse::Button::Left) {
-            sf::Vector2f mousePos = window.mapPixelToCoords(mouse->position);
+            // 1. Sprawdzamy kliknięcia w przyciski (na domyślnym widoku UI)
+            sf::Vector2f mousePosUI = window.mapPixelToCoords(mouse->position);
+            bool buttonClicked = false;
+
             for (const auto& btn : buttons) {
-                if (btn.checkClick(mousePos)) {
+                if (btn.checkClick(mousePosUI)) {
+                    buttonClicked = true;
                     break;
+                }
+            }
+
+            // 2. Jeśli nie kliknięto przycisku, sprawdzamy kliknięcie w labirynt
+            if (!buttonClicked) {
+                // Mapujemy piksele na współrzędne widoku labiryntu (view)
+                sf::Vector2f mousePosWorld = window.mapPixelToCoords(mouse->position, view);
+
+                int col = static_cast<int>(mousePosWorld.x / cellSize);
+                int row = static_cast<int>(mousePosWorld.y / cellSize);
+
+                // Sprawdzamy, czy kliknięcie mieści się w granicach tablicy
+                if (row >= 0 && row < maze.getRows() && col >= 0 && col < maze.getCols()) {
+                    maze.changeWall(row, col);
                 }
             }
         }
