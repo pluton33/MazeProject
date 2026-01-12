@@ -18,26 +18,20 @@ private:
     sf::Color idleColor;
     sf::Color hoverColor;
 
-    // Przechowujemy funkcję (akcję), która ma się wykonać
     std::function<void()> onClickCallback;
 
 public:
-    // Konstruktor (uproszczony, bez pozycji, bo ustawisz ją później)
     Button(float width, float height,
            const std::string& textStr, const sf::Font& font,
            sf::Color baseColor = sf::Color(70, 70, 70),
            sf::Color hoverColor = sf::Color(100, 100, 100));
 
-    // Ustawianie pozycji (przesuwa tło I tekst)
     void setPosition(const sf::Vector2f& pos);
 
-    // Rejestrowanie akcji (Lambdy)
     void setOnClick(std::function<void()> callback);
 
-    // Główna logika
     void update(const sf::Vector2f& mousePos);
 
-    // Sprawdza kliknięcie i AUTOMATYCZNIE wykonuje akcję
     bool checkClick(const sf::Vector2f& mousePos) const;
 
     void render(sf::RenderWindow& target) const; // const, żeby działało w draw()
