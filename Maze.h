@@ -5,6 +5,7 @@
 #ifndef MAZEPROJECT_MAZE_H
 #define MAZEPROJECT_MAZE_H
 #include <vector>
+#include <string>
 
 
 class Maze {
