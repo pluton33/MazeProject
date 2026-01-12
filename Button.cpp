@@ -19,14 +19,12 @@ Button::Button(float width, float height,
     text.setCharacterSize(16);
     text.setFillColor(sf::Color::White);
 
-    // Inicjalizujemy pustą akcją, żeby program nie wybuchł, jak klikniemy bez przypisania
     onClickCallback = [](){};
 }
 
 void Button::setPosition(const sf::Vector2f& pos) {
     shape.setPosition(pos);
 
-    // Centrowanie tekstu względem NOWEJ pozycji kształtu
     sf::FloatRect textRect = text.getLocalBounds();
     text.setOrigin({textRect.position.x + textRect.size.x / 2.0f,
                    textRect.position.y + textRect.size.y / 2.0f});
@@ -51,7 +49,6 @@ void Button::update(const sf::Vector2f& mousePos) {
 
 bool Button::checkClick(const sf::Vector2f& mousePos) const {
     if (shape.getGlobalBounds().contains(mousePos)) {
-        // JEŚLI kliknięto, wywołaj zapisaną lambdę!
         onClickCallback();
         return true;
     }

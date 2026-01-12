@@ -35,7 +35,7 @@ bool Maze::readBoard(const std::string& filename) {
                  return false;
             }
         }
-        board.push_back(line.substr(0, cols)); // Bierzemy tylko tyle znaków ile trzeba
+        board.push_back(line.substr(0, cols));
     }
     return true;
 }

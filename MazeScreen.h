@@ -12,7 +12,6 @@
 #include "Player.h"
 #include "Button.h"
 
-// Dołączamy nagłówki, by móc tworzyć instancje
 #include "ComputerBFTPlayer.h"
 #include "ComputerDFSPlayer.h"
 #include "ComputerRandomPlayer.h"
@@ -24,7 +23,6 @@ private:
     sf::RenderWindow &window;
     sf::Vector2f virtualSize;
 
-    // ZMIANA: Zamiast referencji, używamy shared_ptr, by móc podmieniać obiekt
     std::shared_ptr<Player> player;
 
     sf::Font font;
@@ -45,7 +43,6 @@ private:
     void handleKeyPressed(const sf::Event::KeyPressed &keyPressed);
     void winGame();
 
-    // Metody pomocnicze do UI
     void loadMainMenu();
     void loadSolverMenu();
 
@@ -54,7 +51,6 @@ public:
         return view;
     }
 
-    // ZMIANA: Konstruktor przyjmuje shared_ptr
     MazeScreen(Maze &maze, sf::RenderWindow &window, std::shared_ptr<Player> player);
 
     void draw() const;

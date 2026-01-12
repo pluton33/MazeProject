@@ -9,7 +9,7 @@ void ComputerDFSPlayer::initSearch(Maze &maze) {
     int cols = maze.getCols();
 
     visited.assign(rows, std::vector<bool>(cols, false));
-    parentMove.assign(rows, std::vector<char>(cols, 0)); // Wyzerowanie
+    parentMove.assign(rows, std::vector<char>(cols, 0));
 
     std::stack<DFSNode> empty;
     std::swap(dfsStack, empty);
@@ -17,21 +17,18 @@ void ComputerDFSPlayer::initSearch(Maze &maze) {
     startRow = this->row;
     endRow = (startSideRowNumber == 0) ? rows - 1 : 0;
 
-    // --- SKANOWANIE WSZYSTKICH WEJŚĆ ---
     bool foundEntrance = false;
     for (int c = cols - 1 ; c >= 0; c--) {
-        // Jeśli pole jest wolne, dodajemy je jako potencjalny punkt startowy
         if (!maze.isBlocked(startRow, c)) {
             dfsStack.push({startRow, c});
             visited[startRow][c] = true;
-            maze.markCell(startRow, c); // Oznaczamy wizualnie
+            maze.markCell(startRow, c);
             foundEntrance = true;
         }
     }
 
     if (!foundEntrance) {
         std::cout << "UWAGA: Rzad startowy jest calkowicie zamurowany!" << std::endl;
-        // Opcjonalnie: można tu zakończyć grę lub wymusić start w ścianie (jak wolisz)
     }
 
     searchStarted = true;
@@ -45,19 +42,14 @@ void ComputerDFSPlayer::performDFSStep(Maze &maze) {
 
     DFSNode curr = dfsStack.top();
 
-    // --- SPRAWDZENIE CELU ---
     if (curr.r == endRow) {
         path.clear();
         int r = curr.r;
         int c = curr.c;
 
-        // --- REKONSTRUKCJA ---
-        // Cofamy się do momentu, aż parentMove == 0.
-        // Ponieważ w initSearch nie ustawiliśmy parentMove dla punktów startowych,
-        // pętla zatrzyma się dokładnie na tym polu startowym, z którego wyszła zwycięska ścieżka.
         while (true) {
             char mv = parentMove[r][c];
-            if (mv == 0) break; // STOP - dotarliśmy do startu
+            if (mv == 0) break;
 
             path.push_back(mv);
 
@@ -69,20 +61,13 @@ void ComputerDFSPlayer::performDFSStep(Maze &maze) {
 
         std::reverse(path.begin(), path.end());
 
-        // --- SYNCHRONIZACJA ---
-        // Zmienne r i c wskazują teraz na ZWYCIĘSKIE wejście.
-        // Przenosimy tam gracza.
         this->row = r;
         this->column = c;
 
-        // Dodajemy ruch wejściowy (D/G)
         char entryChar = (startRow == 0) ? 'D' : 'G';
 
         size_t entryPos = path.find(entryChar);
         if (entryPos != std::string::npos) {
-            // Wstawiamy duplikat w tym samym miejscu
-            // Np. z "PPPD..." zrobi się "PPPDD..."
-            // Np. z "D..." zrobi się "DD..."
             path.insert(entryPos, 1, entryChar);
         }
 
@@ -98,7 +83,6 @@ void ComputerDFSPlayer::performDFSStep(Maze &maze) {
     std::array<char, 4> mv{};
 
     if (startRow == 0) {
-        // 2. Przypisanie wartości (działa dzięki std::array)
         dr = {1, 0, 0, -1};
         dc = {0, -1, 1, 0};
         mv = {'D', 'L', 'P', 'G'};
@@ -142,7 +126,6 @@ void ComputerDFSPlayer::update(Maze &maze) {
     }
 
     if (!pathFound) {
-        // Możesz zwiększyć pętlę, żeby DFS szedł szybciej (np. k < 5)
         for (int k = 0; k < 1; k++) {
             if (pathFound || dfsStack.empty()) break;
             performDFSStep(maze);

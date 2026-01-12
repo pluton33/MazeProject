@@ -8,10 +8,6 @@ void ComputerRandomPlayer::initSearch(Maze &maze) {
     int cols = maze.getCols();
     // switchSide(maze);
 
-
-
-
-    // 1. Inicjalizujemy tablicę visited (ważne, żeby nie chodzić w kółko)
     visited.assign(rows, std::vector<bool>(cols, false));
 
     startRow = this->row;
@@ -20,30 +16,23 @@ void ComputerRandomPlayer::initSearch(Maze &maze) {
 
     parentMove.assign(rows, std::vector<char>(cols, 0));
 
-    // 2. Musimy wrzucić PIERWSZY element na stos!
     randomStack.push({startRow, column});
 
-    // 3. Oznaczamy start jako odwiedzony i rysujemy go
     visited[startRow][column] = true;
     maze.markCell(startRow, column);
 
-    // 4. Ustawiamy flagę, że szukanie się rozpoczęło (inaczej update() utknie)
     searchStarted = true;
 
-    // Opcjonalnie resetujemy rng seed raz na start
-    // rng.seed(std::time(nullptr));
 }
 
 void ComputerRandomPlayer::performStep(Maze &maze) {
     std::uniform_int_distribution<int> dist(0, maze.getCols() -1);
     if (randomStack.empty()) {
-        return; // Zabezpieczenie
+        return;
     }
 
-    // 1. TYLKO PODGLĄDAMY - NIE ROBIMY POP() TUTAJ!
     Node curr = randomStack.top();
 
-    // Sprawdzenie celu...
     if (curr.r == endRow) {
         {
             path.clear();
@@ -70,9 +59,6 @@ void ComputerRandomPlayer::performStep(Maze &maze) {
 
             size_t entryPos = path.find(entryChar);
             if (entryPos != std::string::npos) {
-                // Wstawiamy duplikat w tym samym miejscu
-                // Np. z "PPPD..." zrobi się "PPPDD..."
-                // Np. z "D..." zrobi się "DD..."
                 path.insert(entryPos, 1, entryChar);
             }
             pathFound = true;
@@ -97,33 +83,26 @@ void ComputerRandomPlayer::performStep(Maze &maze) {
         int nr = curr.r + dr[dirIndex];
         int nc = curr.c + dc[dirIndex];
 
-        // Sprawdzamy granice, ściany I CZY NIE BYLIŚMY TAM W TEJ PRÓBIE
         if (nr >= 0 && nr < maze.getRows() && nc >= 0 && nc < maze.getCols() &&
             !maze.isBlocked(nr, nc) && !visited[nr][nc]) {
-
-            randomStack.push({nr, nc}); // Dodajemy nowy krok
-            visited[nr][nc] = true;     // Oznaczamy
+            randomStack.push({nr, nc});
+            visited[nr][nc] = true;
             parentMove[nr][nc] = mv[dirIndex];
 
             int sup = maze.markCell(nr, nc);
             if (sup) std::cout << "Ruch na: " << nr << " " << nc << std::endl;
 
             moved = true;
-            break; // Przerywamy pętlę, bo wykonaliśmy jeden krok
+            break;
             }
     }
 
-    // --- LOGIKA RESETU ---
     if (!moved) {
         std::cout << "Zablokowany w (" << curr.r << "," << curr.c << ")! Reset do startu..." << std::endl;
-
-        // 1. Czyścimy stos
         std::stack<Node> empty;
         std::swap(randomStack, empty);
         // resetPosition();
         maze.clearPaths();
-
-        // 2. Czyścimy pamięć odwiedzin (zapominamy całą nieudaną trasę)
         for(auto &row : visited) {
             std::fill(row.begin(), row.end(), false);
         }
@@ -132,12 +111,8 @@ void ComputerRandomPlayer::performStep(Maze &maze) {
             startCol = dist(rng);
         } while (maze.isBlocked(startRow, startCol));
 
-        // 3. WRZUCAMY ORYGINALNY START (używając startCol!)
         randomStack.push({startRow, startCol});
         visited[startRow][startCol] = true;
-
-
-        // 4. (Opcjonalnie) Oznaczamy wizualnie start ponownie
         maze.markCell(startRow, startCol);
     }
 }
@@ -151,7 +126,6 @@ void ComputerRandomPlayer::update(Maze &maze) {
     }
 
     if (!pathFound) {
-        // Możesz zwiększyć pętlę, żeby DFS szedł szybciej (np. k < 5)
         for (int k = 0; k < 1; k++) {
             if (pathFound || randomStack.empty()) break;
             performStep(maze);

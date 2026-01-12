@@ -144,5 +144,5 @@ void ComputerBFTPlayer::resetPosition() {
     parentMove.clear();
     isActivated = false;
 
-    // isActivated = true; //
+    // isActivated = true;
 }

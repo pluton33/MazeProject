@@ -13,23 +13,22 @@ const int WINDOW_HEIGHT = 600;
 
 int main() {
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
-    // HumanPlayer seba;
+    // HumanPlayer player;
     //
     // ComputerBFTPlayer seba;
-    // Tworzymy inteligentny wskaźnik:
-    std::shared_ptr<Player> seba = std::make_shared<HumanPlayer>();
+    std::shared_ptr<Player> player = std::make_shared<HumanPlayer>();
     Maze maze = Maze();
     if (!maze.readBoard("input.txt")) {
-        std::cout << "Generuje losowy labirynt 20x15." << std::endl;
-        maze = Maze(20, 15);
+        std::cout << "Generuje losowy labirynt 15x15." << std::endl;
+        maze = Maze(15, 15);
         maze.createBoard();
     }
     maze.printBoard();
 
 
-    // seba.update(maze);
-    sf::RenderWindow window(sf::VideoMode({(unsigned int)WINDOW_WIDTH, (unsigned int)WINDOW_HEIGHT}), "Labirynt SFML 3");
-    MazeScreen mazeScreen(maze, window, seba);
+    // player.update(maze);
+    sf::RenderWindow window(sf::VideoMode({(unsigned int)WINDOW_WIDTH, (unsigned int)WINDOW_HEIGHT}), "Labirynt");
+    MazeScreen mazeScreen(maze, window, player);
     mazeScreen.startGame();
     while (window.isOpen()) {
         window.setFramerateLimit(60);
