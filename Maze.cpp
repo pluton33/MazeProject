@@ -6,6 +6,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <string>
 
 
 Maze::Maze(int rows, int cols) : rows(rows), cols(cols) {};

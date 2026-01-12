@@ -2,18 +2,13 @@
 #include <iostream>
 #include <algorithm>
 
-
-void ComputerBFTPlayer::initSearch(Maze &maze) {
+void ComputerBFTPlayer::initSearch(Maze& maze) {
 
     int rows = maze.getRows();
     int cols = maze.getCols();
-    // switchSide(maze);
-    // switchSide(maze);
-
 
     visited.assign(rows, std::vector<bool>(cols, false));
     parentMove.assign(rows, std::vector<char>(cols, 0));
-
 
     std::queue<Node> empty;
     std::swap(bfsQueue, empty);
@@ -22,14 +17,10 @@ void ComputerBFTPlayer::initSearch(Maze &maze) {
     endRow = (startSideRowNumber == 0) ? rows - 1 : 0;
     std::cout << "start row: " << startSideRowNumber << std::endl;
 
-
     for (int c = 0; c < cols; c++) {
-
         if (!maze.isBlocked(startRow, c)) {
-            bfsQueue.push({startRow, c});
+            bfsQueue.push({ startRow, c });
             visited[startRow][c] = true;
-
-
             maze.markCell(startRow, c);
         }
     }
@@ -37,14 +28,12 @@ void ComputerBFTPlayer::initSearch(Maze &maze) {
     searchStarted = true;
 }
 
-void ComputerBFTPlayer::performBFSStep(Maze &maze) {
+void ComputerBFTPlayer::performBFSStep(Maze& maze) {
 
     if (bfsQueue.empty()) {
         std::cout << "Koniec przeszukiwania - brak wyjscia!" << std::endl;
-
         return;
     }
-
 
     int stepsPerFrame = 1;
 
@@ -59,6 +48,7 @@ void ComputerBFTPlayer::performBFSStep(Maze &maze) {
 
             while (r != startRow) {
                 char mv = parentMove[r][c];
+                if (mv == 0) return;
                 path += mv;
                 if (mv == 'P') c--;
                 else if (mv == 'L') c++;
@@ -70,7 +60,7 @@ void ComputerBFTPlayer::performBFSStep(Maze &maze) {
             this->row = r;
 
             std::reverse(path.begin(), path.end());
-            if (!path.empty()) path = path[0] + path; // Duplikacja pierwszego ruchu
+            if (!path.empty()) path = path[0] + path;
 
             pathFound = true;
             pathIndex = 0;
@@ -80,9 +70,9 @@ void ComputerBFTPlayer::performBFSStep(Maze &maze) {
             return;
         }
 
-        int dr[] = {0, 0, 1, -1};
-        int dc[] = {1, -1, 0, 0};
-        char moveChars[] = {'P', 'L', 'D', 'G'};
+        int dr[] = { 0, 0, 1, -1 };
+        int dc[] = { 1, -1, 0, 0 };
+        char moveChars[] = { 'P', 'L', 'D', 'G' };
 
         for (int i = 0; i < 4; i++) {
             if (curr.r == startRow) {
@@ -93,17 +83,20 @@ void ComputerBFTPlayer::performBFSStep(Maze &maze) {
             int nr = curr.r + dr[i];
             int nc = curr.c + dc[i];
 
+            if (nr < 0 || nr >= maze.getRows() || nc < 0 || nc >= maze.getCols())
+                continue;
+
             if (!maze.isBlocked(nr, nc) && !visited[nr][nc]) {
                 visited[nr][nc] = true;
                 parentMove[nr][nc] = moveChars[i];
-                bfsQueue.push({nr, nc});
+                bfsQueue.push({ nr, nc });
                 maze.markCell(nr, nc);
             }
         }
     }
 }
 
-void ComputerBFTPlayer::update(Maze &maze) {
+void ComputerBFTPlayer::update(Maze& maze) {
     if (!isActivated) {
         return;
     }
@@ -117,6 +110,11 @@ void ComputerBFTPlayer::update(Maze &maze) {
         return;
     }
 
+    if (path.empty()) {
+        pathFound = false;
+        return;
+    }
+
     static int moveDelay = 0;
     if (++moveDelay < 5) return;
     moveDelay = 0;
@@ -126,7 +124,6 @@ void ComputerBFTPlayer::update(Maze &maze) {
         pathIndex++;
     }
 }
-
 
 void ComputerBFTPlayer::resetPosition() {
     Player::resetPosition();
@@ -139,10 +136,7 @@ void ComputerBFTPlayer::resetPosition() {
     std::queue<Node> empty;
     std::swap(bfsQueue, empty);
 
-
     visited.clear();
     parentMove.clear();
     isActivated = false;
-
-    // isActivated = true;
 }
