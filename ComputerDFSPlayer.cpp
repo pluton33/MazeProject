@@ -4,6 +4,7 @@
 #include <stack>
 
 void ComputerDFSPlayer::initSearch(Maze &maze) {
+    // switchSide(maze);
     int rows = maze.getRows();
     int cols = maze.getCols();
 
@@ -92,11 +93,20 @@ void ComputerDFSPlayer::performDFSStep(Maze &maze) {
         std::swap(dfsStack, empty);
         return;
     }
+    std::array<int, 4> dr{};
+    std::array<int, 4> dc{};
+    std::array<char, 4> mv{};
 
-    // --- RUCHY ---
-    int dr[4] = {1, 0, 0, -1};
-    int dc[4] = {0, -1, 1, 0};
-    char mv[4] = {'D', 'L', 'P', 'G'};
+    if (startRow == 0) {
+        // 2. Przypisanie wartości (działa dzięki std::array)
+        dr = {1, 0, 0, -1};
+        dc = {0, -1, 1, 0};
+        mv = {'D', 'L', 'P', 'G'};
+    } else {
+        dr = {-1, 0, 0, 1};
+        dc = {0, -1, 1, 0};
+        mv = {'G', 'L', 'P', 'D'};
+    }
 
     bool moved = false;
 

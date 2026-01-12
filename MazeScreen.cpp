@@ -10,8 +10,7 @@
 
 // Konstruktor zaktualizowany o shared_ptr
 MazeScreen::MazeScreen(Maze &maze, sf::RenderWindow &window, std::shared_ptr<Player> player)
-    : maze(maze), window(window), virtualSize(512.0f, 512.0f), player(player), pathText(font) {
-
+    : maze(maze), window(window), virtualSize(512.0f, 512.0f), player(player), pathText(font), startSideText(font) {
     virtualSize.x = 512.0f;
     int cols = maze.getCols();
     int rows = maze.getRows();
@@ -21,12 +20,15 @@ MazeScreen::MazeScreen(Maze &maze, sf::RenderWindow &window, std::shared_ptr<Pla
         // (opcjonalne zabezpieczenie)
         std::cerr << "Nie mozna zaladowac czcionki arial.ttf" << std::endl;
     }
+    startSideText.setFont(font);
+    startSideText.setCharacterSize(18);
+    startSideText.setString("");
 
     pathText.setFont(font);
     pathText.setCharacterSize(18);
     pathText.setFillColor(sf::Color::White);
     pathText.setString("");
-    pathText.setPosition({20.0f, float(window.getSize().y-25.0f)});
+    pathText.setPosition({20.0f, float(window.getSize().y - 25.0f)});
 
     cellSize = virtualSize.x / static_cast<float>(cols);
     virtualSize.y = cellSize * static_cast<float>(rows);
@@ -39,6 +41,7 @@ MazeScreen::MazeScreen(Maze &maze, sf::RenderWindow &window, std::shared_ptr<Pla
 
 void MazeScreen::loadMainMenu() {
     buttons.clear();
+    updateStartSideText();
 
     Button restartBtn(160.f, 40.f, "Reset", font);
     restartBtn.setOnClick([this]() {
@@ -65,11 +68,11 @@ void MazeScreen::loadMainMenu() {
         std::cin >> filename;
 
         if (this->maze.readBoard(filename)) {
-             std::cout << "Udalo sie wczytac!" << std::endl;
-             this->restartGame();
+            std::cout << "Udalo sie wczytac!" << std::endl;
+            this->restartGame();
             updateMazeLayout();
         } else {
-             std::cout << "Blad: Nie udalo sie otworzyc pliku." << std::endl;
+            std::cout << "Blad: Nie udalo sie otworzyc pliku." << std::endl;
         }
     });
     buttons.push_back(loadBtn);
@@ -93,6 +96,26 @@ void MazeScreen::loadMainMenu() {
         updateMazeLayout();
     });
     buttons.push_back(genBtn);
+    Button switchBtn(160.f, 40.f, "Zmien Strone", font);
+    switchBtn.setOnClick([this]() {
+        if (this->player) {
+            std::cout << "Zmiana strony startowej..." << std::endl;
+
+            // 1. Wywołanie logiki zamiany stron
+            this->player->switchSide(this->maze);
+            updateStartSideText();
+
+            // 2. Opcjonalnie: zresetowanie ścieżek na mapie,
+            // żeby nie było widać starego rozwiązania bota
+            this->maze.clearPaths();
+
+            // 3. Odświeżenie komunikatu o ruchach
+            this->pathText.setString("");
+            this->pathColor = sf::Color::Magenta;
+
+        }
+    });
+    buttons.push_back(switchBtn);
 
     Button resetBtn(160.f, 40.f, "Reset", font);
     resetBtn.setOnClick([this]() {
@@ -102,9 +125,9 @@ void MazeScreen::loadMainMenu() {
         pathColor = sf::Color::Magenta;
         maze.clearPaths();
         player->resetPosition();
+        updateStartSideText();
         player->activate();
         gameState = GameState::RUNNING;
-
     });
     buttons.push_back(resetBtn);
 }
@@ -112,13 +135,21 @@ void MazeScreen::loadMainMenu() {
 void MazeScreen::loadSolverMenu() {
     buttons.clear();
 
+
     // 1. Algorytm BFS (istniejący)
     Button bfsBtn(160.f, 40.f, "Algorytm BFS", font);
     bfsBtn.setOnClick([this]() {
+        bool wasBottomSide = (this->player->getStartSideRowNumber() != 0);
         std::cout << "Wybrano BFS" << std::endl;
         // Podmiana gracza
         this->player = std::make_shared<ComputerBFTPlayer>();
         this->player->resetPosition();
+        if (wasBottomSide) {
+            player->switchSide(maze);
+        } else {
+            // Opcjonalnie: upewnij się, że jest na górze (reset)
+            player->resetPosition();
+        }
         this->player->activate();
         this->loadMainMenu(); // Powrót do menu
         this->resizeView();
@@ -128,9 +159,15 @@ void MazeScreen::loadSolverMenu() {
     // 2. Algorytm DFS (nowy)
     Button dfsBtn(160.f, 40.f, "Algorytm DFS", font);
     dfsBtn.setOnClick([this]() {
+        bool wasBottomSide = (this->player->getStartSideRowNumber() != 0);
         std::cout << "Wybrano DFS" << std::endl;
         this->player = std::make_shared<ComputerDFSPlayer>();
-        this->player->resetPosition();
+        if (wasBottomSide) {
+            player->switchSide(maze);
+        } else {
+            // Opcjonalnie: upewnij się, że jest na górze (reset)
+            player->resetPosition();
+        }
         this->player->activate();
         this->loadMainMenu();
         this->resizeView();
@@ -140,9 +177,15 @@ void MazeScreen::loadSolverMenu() {
     // 3. Algorytm Random (nowy)
     Button rndBtn(160.f, 40.f, "Algorytm Random", font);
     rndBtn.setOnClick([this]() {
+        bool wasBottomSide = (this->player->getStartSideRowNumber() != 0);
         std::cout << "Wybrano Random" << std::endl;
         this->player = std::make_shared<ComputerRandomPlayer>();
-        this->player->resetPosition();
+        if (wasBottomSide) {
+            player->switchSide(maze);
+        } else {
+            // Opcjonalnie: upewnij się, że jest na górze (reset)
+            player->resetPosition();
+        }
         this->player->activate();
         this->loadMainMenu();
         this->resizeView();
@@ -180,7 +223,8 @@ void MazeScreen::draw() const {
     }
     window.setView(window.getDefaultView());
     window.draw(pathText);
-    for (const auto& btn : buttons) {
+    window.draw(startSideText);
+    for (const auto &btn: buttons) {
         btn.render((window));
     }
 }
@@ -191,13 +235,13 @@ void MazeScreen::handleEvents(const sf::Event &event) {
     } else if (event.is<sf::Event::Resized>()) {
         resizeView();
     }
-    if (const sf::Event::MouseButtonPressed* mouse = event.getIf<sf::Event::MouseButtonPressed>()) {
+    if (const sf::Event::MouseButtonPressed *mouse = event.getIf<sf::Event::MouseButtonPressed>()) {
         if (mouse->button == sf::Mouse::Button::Left) {
             // 1. Sprawdzamy kliknięcia w przyciski (na domyślnym widoku UI)
             sf::Vector2f mousePosUI = window.mapPixelToCoords(mouse->position);
             bool buttonClicked = false;
 
-            for (const auto& btn : buttons) {
+            for (const auto &btn: buttons) {
                 if (btn.checkClick(mousePosUI)) {
                     buttonClicked = true;
                     break;
@@ -237,6 +281,7 @@ void MazeScreen::restartGame() {
     // Zwykle restart gry to powrót do początku.
     // Jeśli chcemy wrócić do sterowania ręcznego:
     this->player = std::make_shared<HumanPlayer>();
+    updateStartSideText();
 
     player->resetPosition();
     maze.printBoard();
@@ -260,7 +305,8 @@ void MazeScreen::handleKeyPressed(const sf::Event::KeyPressed &keyPressed) {
     }
 
     if (gameState == GameState::RUNNING) {
-        if (player->isHuman()) { // Użycie wskaźnika
+        if (player->isHuman()) {
+            // Użycie wskaźnika
             if (keyPressed.code == sf::Keyboard::Key::Left) {
                 player->makeMove(maze, 'L');
             } else if (keyPressed.code == sf::Keyboard::Key::Right) {
@@ -314,8 +360,8 @@ void MazeScreen::resizeView() {
     view.setCenter(sf::Vector2f(virtualSize.x / 2.0f, virtualSize.y / 2.0f));
 
     view.setViewport(sf::FloatRect(
-        { offsetX / windowWidth, offsetY / windowHeight },
-        { viewWidth / windowWidth, viewHeight / windowHeight }
+        {offsetX / windowWidth, offsetY / windowHeight},
+        {viewWidth / windowWidth, viewHeight / windowHeight}
     ));
 
     float btnMargin = 20.0f;
@@ -324,7 +370,7 @@ void MazeScreen::resizeView() {
 
     // Pozycjonowanie przycisków dynamicznie, niezależnie ile ich jest (Menu vs Solver)
     for (size_t i = 0; i < buttons.size(); ++i) {
-         buttons[i].setPosition({window.getSize().y - 40.f - btnMargin, startY + (i * gap)});
+        buttons[i].setPosition({window.getSize().y - btnMargin, startY + (i * gap)});
     }
 }
 
@@ -339,4 +385,14 @@ void MazeScreen::updateMazeLayout() {
 
 void MazeScreen::startGame() {
     gameState = GameState::RUNNING;
+}
+
+void MazeScreen::updateStartSideText() {
+    if (player->getStartSideRowNumber() == 0) {
+        startSideText.setString("Start: GORA");
+        startSideText.setFillColor(sf::Color::Green); // Opcjonalnie: kolor dla góry
+    } else {
+        startSideText.setString("Start: DOL");
+        startSideText.setFillColor(sf::Color::Red);   // Opcjonalnie: kolor dla dołu
+    }
 }

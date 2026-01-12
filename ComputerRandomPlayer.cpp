@@ -6,6 +6,7 @@
 void ComputerRandomPlayer::initSearch(Maze &maze) {
     int rows = maze.getRows();
     int cols = maze.getCols();
+    // switchSide(maze);
 
 
 

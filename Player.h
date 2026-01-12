@@ -27,6 +27,10 @@ public:
 
     void switchSide(const Maze &maze);
 
+    int getStartSideRowNumber() const {
+        return startSideRowNumber;
+    }
+
     int checkForWin(const Maze &maze) const;
 
     std::string getMoves() const {

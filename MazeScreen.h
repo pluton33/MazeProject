@@ -30,6 +30,7 @@ private:
     sf::Font font;
     std::vector<Button> buttons;
     sf::Text pathText;
+    sf::Text startSideText;
     float cellSize;
     sf::View view;
     sf::Color pathColor = sf::Color::Magenta;
@@ -64,6 +65,7 @@ public:
     void restartGame();
     void toggleBlock(int row, int col);
     void startGame();
+    void updateStartSideText();
 };
 
 #endif //MAZEPROJECT_MAZESCREEN_H

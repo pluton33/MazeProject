@@ -104,7 +104,8 @@ void Player::undoMove(Maze &maze) {
 }
 
 void Player::switchSide(const Maze &maze) {
-    row = maze.getRows() - 1;
+    if (row == 0) row = maze.getRows() - 1;
+    else row = 0;
     startSideRowNumber = row;
 }
 void Player::resetPosition() {
@@ -114,11 +115,11 @@ void Player::resetPosition() {
 }
 
 int Player::checkForWin(const Maze &maze) const {
-    if (!moves.empty() || startSideRowNumber == 0) {
+    if (!moves.empty() && startSideRowNumber == 0) {
         if (row == maze.getRows()-1) {
             return 1;
         }
-    } else if (!moves.empty() || startSideRowNumber != 0) {
+    } else if (!moves.empty() && startSideRowNumber != 0) {
         if (row == 0) {
             return 1;
         }

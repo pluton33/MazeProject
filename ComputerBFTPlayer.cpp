@@ -8,6 +8,7 @@ void ComputerBFTPlayer::initSearch(Maze &maze) {
     int rows = maze.getRows();
     int cols = maze.getCols();
     // switchSide(maze);
+    // switchSide(maze);
 
 
     visited.assign(rows, std::vector<bool>(cols, false));
@@ -19,6 +20,7 @@ void ComputerBFTPlayer::initSearch(Maze &maze) {
 
     startRow = (startSideRowNumber == 0) ? 0 : rows - 1;
     endRow = (startSideRowNumber == 0) ? rows - 1 : 0;
+    std::cout << "start row: " << startSideRowNumber << std::endl;
 
 
     for (int c = 0; c < cols; c++) {
