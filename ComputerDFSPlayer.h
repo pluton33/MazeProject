@@ -30,10 +30,10 @@ private:
     // -------------------------------------------------------
 
     void initSearch(Maze &maze);
-    void performDFSStep(Maze &maze);
+    void performDFSStep(Maze &maze, int stepsPerFrame);
 
 public:
-    void update(Maze &maze) override;
+    void update(Maze &maze, int stepsPerFrame) override;
     bool isHuman() override { return false; }
     void activate() override { isActivated = !isActivated; }
     void resetPosition() override;

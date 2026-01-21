@@ -1,15 +1,11 @@
-//
-// Created by Sebastian on 12/12/2025.
-//
-
 #include "MazeScreen.h"
-
 #include <iostream>
-#include "Button.h"
-#include "SFML/Graphics/RectangleShape.hpp"
 
 MazeScreen::MazeScreen(Maze &maze, sf::RenderWindow &window, std::shared_ptr<Player> player)
-    : maze(maze), window(window), virtualSize(512.0f, 512.0f), player(player), pathText(font), startSideText(font) {
+    : maze(maze), window(window), virtualSize(512.0f, 512.0f), player(player),
+      pathText(font), startSideText(font), promptText(font), inputTextDisplay(font),
+      solverSpeed(100), wallRatio(3) {
+
     virtualSize.x = 512.0f;
     int cols = maze.getCols();
     int rows = maze.getRows();
@@ -17,6 +13,19 @@ MazeScreen::MazeScreen(Maze &maze, sf::RenderWindow &window, std::shared_ptr<Pla
     if (!font.openFromFile("arial.ttf")) {
         std::cerr << "Nie mozna zaladowac czcionki arial.ttf" << std::endl;
     }
+
+    inputBoxBg.setFillColor(sf::Color(0, 0, 0, 200));
+    inputBoxBg.setOutlineColor(sf::Color::White);
+    inputBoxBg.setOutlineThickness(2.0f);
+
+    promptText.setFont(font);
+    promptText.setCharacterSize(24);
+    promptText.setFillColor(sf::Color::Yellow);
+
+    inputTextDisplay.setFont(font);
+    inputTextDisplay.setCharacterSize(24);
+    inputTextDisplay.setFillColor(sf::Color::White);
+
     startSideText.setFont(font);
     startSideText.setCharacterSize(18);
     startSideText.setString("");
@@ -27,10 +36,14 @@ MazeScreen::MazeScreen(Maze &maze, sf::RenderWindow &window, std::shared_ptr<Pla
     pathText.setString("");
     pathText.setPosition({20.0f, float(window.getSize().y - 25.0f)});
 
+    promptText.setFont(font);
+    promptText.setCharacterSize(18);
+    promptText.setFillColor(sf::Color::White);
+    promptText.setString("");
+
     cellSize = virtualSize.x / static_cast<float>(cols);
     virtualSize.y = cellSize * static_cast<float>(rows);
 
-    // Inicjalizacja głównego menu przycisków
     loadMainMenu();
     resizeView();
 }
@@ -41,69 +54,68 @@ void MazeScreen::loadMainMenu() {
 
     Button restartBtn(160.f, 40.f, "Nowy", font);
     restartBtn.setOnClick([this]() {
-        std::cout << "Restart klikniety!" << std::endl;
-        this->maze.createBoard();
+        this->maze.createBoard(this->maze.getRows(), this->maze.getCols(), this->wallRatio);
         this->restartGame();
     });
     buttons.push_back(restartBtn);
 
     Button botBtn(160.f, 40.f, "Rozwiaz...", font);
     botBtn.setOnClick([this]() {
-        std::cout << "Otwieranie menu algorytmow..." << std::endl;
         this->loadSolverMenu();
-        this->resizeView(); // Odswiez pozycje przyciskow
+        this->resizeView();
     });
     buttons.push_back(botBtn);
 
     Button loadBtn(160.f, 40.f, "Wczytaj z Pliku", font);
     loadBtn.setOnClick([this]() {
-        std::string filename;
-        std::cout << "\n--- WCZYTYWANIE LABIRYNTU ---" << std::endl;
-        std::cout << "Podaj nazwe pliku (np. input.txt): ";
-        std::cin >> filename;
-
-        if (this->maze.readBoard(filename)) {
-            std::cout << "Udalo sie wczytac!" << std::endl;
-            this->restartGame();
-            updateMazeLayout();
-        } else {
-            std::cout << "Blad: Nie udalo sie otworzyc pliku." << std::endl;
-        }
+        isTyping = true;
+        currentInputMode = InputMode::LOAD_FILENAME;
+        userInput = "";
+        promptText.setString("Podaj nazwe pliku:");
     });
     buttons.push_back(loadBtn);
 
     Button genBtn(160.f, 40.f, "Generuj Wlasny", font);
     genBtn.setOnClick([this]() {
-        int w, h;
-        std::cout << "\n--- GENEROWANIE LABIRYNTU ---" << std::endl;
-        std::cout << "Podaj liczbe kolumn (szerokosc): ";
-        std::cin >> h;
-        std::cout << "Podaj liczbe wierszy (wysokosc): ";
-        std::cin >> w;
-
-        if (w < 5 || h < 5) {
-            std::cout << "Za male wymiary! Minimum 5x5." << std::endl;
-            return;
-        }
-        this->maze.createBoard(h, w);
-        std::cout << "Wygenerowano nowy labirynt " << w << "x" << h << std::endl;
-        this->restartGame();
-        updateMazeLayout();
+        isTyping = true;
+        currentInputMode = InputMode::GEN_WIDTH;
+        userInput = "";
+        promptText.setString("Podaj szerokosc (kolumny):");
     });
     buttons.push_back(genBtn);
+
     Button switchBtn(160.f, 40.f, "Zmien Strone", font);
     switchBtn.setOnClick([this]() {
         if (this->player) {
-            std::cout << "Zmiana strony startowej..." << std::endl;
             this->player->switchSide(this->maze);
             updateStartSideText();
             this->maze.clearPaths();
             this->pathText.setString("");
             this->pathColor = sf::Color::Magenta;
-
         }
     });
     buttons.push_back(switchBtn);
+
+    Button speedBtn(160.f, 40.f, "Szybkosc: " + std::to_string(solverSpeed), font);
+    speedBtn.setOnClick([this]() {
+        if (this->solverSpeed == 10) this->solverSpeed = 100;
+        else if (this->solverSpeed == 100) this->solverSpeed = 10000;
+        else this->solverSpeed = 10;
+
+        this->loadMainMenu();
+        this->resizeView();
+    });
+    buttons.push_back(speedBtn);
+
+    Button wallBtn(160.f, 40.f, "Stosunek pol: " + std::to_string(wallRatio), font);
+    wallBtn.setOnClick([this]() {
+        this->wallRatio += 1;
+        if (this->wallRatio > 10) this->wallRatio = 0;
+
+        this->loadMainMenu();
+        this->resizeView();
+    });
+    buttons.push_back(wallBtn);
 
     Button resetBtn(160.f, 40.f, "Reset", font);
     resetBtn.setOnClick([this]() {
@@ -122,18 +134,12 @@ void MazeScreen::loadMainMenu() {
 
 void MazeScreen::loadSolverMenu() {
     buttons.clear();
-    Button bfsBtn(160.f, 40.f, "Algorytm BFS", font);
+    Button bfsBtn(160.f, 40.f, "Algorytm palenie lasu", font);
     bfsBtn.setOnClick([this]() {
         bool wasBottomSide = (this->player->getStartSideRowNumber() != 0);
-        std::cout << "Wybrano BFS" << std::endl;
-        // Podmiana gracza
         this->player = std::make_shared<ComputerBFTPlayer>();
         this->player->resetPosition();
-        if (wasBottomSide) {
-            player->switchSide(maze);
-        } else {
-            player->resetPosition();
-        }
+        if (wasBottomSide) player->switchSide(maze); else player->resetPosition();
         this->player->activate();
         this->loadMainMenu();
         this->resizeView();
@@ -143,13 +149,8 @@ void MazeScreen::loadSolverMenu() {
     Button dfsBtn(160.f, 40.f, "Algorytm DFS", font);
     dfsBtn.setOnClick([this]() {
         bool wasBottomSide = (this->player->getStartSideRowNumber() != 0);
-        std::cout << "Wybrano DFS" << std::endl;
         this->player = std::make_shared<ComputerDFSPlayer>();
-        if (wasBottomSide) {
-            player->switchSide(maze);
-        } else {
-            player->resetPosition();
-        }
+        if (wasBottomSide) player->switchSide(maze); else player->resetPosition();
         this->player->activate();
         this->loadMainMenu();
         this->resizeView();
@@ -159,13 +160,8 @@ void MazeScreen::loadSolverMenu() {
     Button rndBtn(160.f, 40.f, "Algorytm Random", font);
     rndBtn.setOnClick([this]() {
         bool wasBottomSide = (this->player->getStartSideRowNumber() != 0);
-        std::cout << "Wybrano Random" << std::endl;
         this->player = std::make_shared<ComputerRandomPlayer>();
-        if (wasBottomSide) {
-            player->switchSide(maze);
-        } else {
-            player->resetPosition();
-        }
+        if (wasBottomSide) player->switchSide(maze); else player->resetPosition();
         this->player->activate();
         this->loadMainMenu();
         this->resizeView();
@@ -190,7 +186,6 @@ void MazeScreen::draw() const {
             cellShape.setPosition(sf::Vector2f(col * cellSize, row * cellSize));
 
             char cell = maze.getBoard()[row][col];
-
             if (cell == 'B') cellShape.setFillColor(sf::Color::White);
             else if (cell == 'C') cellShape.setFillColor(sf::Color::Black);
             else if (cell == 'G') cellShape.setFillColor(pathColor);
@@ -200,15 +195,59 @@ void MazeScreen::draw() const {
             window.draw(cellShape);
         }
     }
+
     window.setView(window.getDefaultView());
+
     window.draw(pathText);
     window.draw(startSideText);
     for (const auto &btn: buttons) {
         btn.render((window));
     }
+
+    if (isTyping) {
+        sf::Vector2u windowSize = window.getSize();
+
+        float boxW = 400.0f;
+        float boxH = 150.0f;
+        sf::RectangleShape bg = inputBoxBg;
+        bg.setSize({boxW, boxH});
+        bg.setPosition({(windowSize.x - boxW) / 2.0f, (windowSize.y - boxH) / 2.0f});
+
+        sf::Text prompt = promptText;
+        prompt.setPosition({bg.getPosition().x + 20.0f, bg.getPosition().y + 20.0f});
+
+        sf::Text input = inputTextDisplay;
+        input.setString(userInput + "_");
+        input.setPosition({bg.getPosition().x + 20.0f, bg.getPosition().y + 70.0f});
+
+        window.draw(bg);
+        window.draw(prompt);
+        window.draw(input);
+    }
 }
 
 void MazeScreen::handleEvents(const sf::Event &event) {
+    if (isTyping) {
+        if (const sf::Event::TextEntered* textEvent = event.getIf<sf::Event::TextEntered>()) {
+            if (textEvent->unicode == 8) {
+                if (!userInput.empty()) userInput.pop_back();
+            }
+            else if (textEvent->unicode >= 32 && textEvent->unicode < 128) {
+                userInput += static_cast<char>(textEvent->unicode);
+            }
+        }
+        else if (const sf::Event::KeyPressed* keyEvent = event.getIf<sf::Event::KeyPressed>()) {
+            if (keyEvent->code == sf::Keyboard::Key::Enter) {
+                processInputConfirmation();
+            }
+            else if (keyEvent->code == sf::Keyboard::Key::Escape) {
+                isTyping = false;
+                currentInputMode = InputMode::NONE;
+            }
+        }
+        return;
+    }
+
     if (const sf::Event::KeyPressed *key = event.getIf<sf::Event::KeyPressed>()) {
         handleKeyPressed(*key);
     } else if (event.is<sf::Event::Resized>()) {
@@ -239,8 +278,41 @@ void MazeScreen::handleEvents(const sf::Event &event) {
     }
 }
 
-void MazeScreen::toggleBlock(int row, int col) {
+void MazeScreen::processInputConfirmation() {
+    try {
+        if (currentInputMode == InputMode::LOAD_FILENAME) {
+            if (maze.readBoard(userInput)) {
+                restartGame();
+                updateMazeLayout();
+            } else {
+                std::cout << "Blad wczytywania pliku: " << userInput << std::endl;
+            }
+            isTyping = false;
+        }
+        else if (currentInputMode == InputMode::GEN_WIDTH) {
+            tempGenWidth = std::stoi(userInput);
+            if (tempGenWidth < 5) tempGenWidth = 5;
+
+            userInput = "";
+            currentInputMode = InputMode::GEN_HEIGHT;
+            promptText.setString("Podaj wysokosc (wiersze):");
+        }
+        else if (currentInputMode == InputMode::GEN_HEIGHT) {
+            int h = std::stoi(userInput);
+            if (h < 5) h = 5;
+
+            maze.createBoard(h, tempGenWidth, wallRatio);
+            restartGame();
+            updateMazeLayout();
+            isTyping = false;
+        }
+    } catch (...) {
+        std::cout << "Blad danych wejsciowych" << std::endl;
+        isTyping = false;
+    }
 }
+
+void MazeScreen::toggleBlock(int row, int col) {}
 
 void MazeScreen::winGame() {
     gameState = GameState::PAUSED;
@@ -254,15 +326,14 @@ void MazeScreen::restartGame() {
     updateStartSideText();
 
     player->resetPosition();
-    maze.printBoard();
     gameState = GameState::RUNNING;
     pathColor = sf::Color::Magenta;
     pathText.setString("");
 }
 
 void MazeScreen::updateGame() {
-    if (gameState == GameState::RUNNING) {
-        player->update(maze);
+    if (gameState == GameState::RUNNING && !isTyping) {
+        player->update(maze, solverSpeed);
         if (player->checkForWin(maze)) {
             winGame();
         }
@@ -276,7 +347,6 @@ void MazeScreen::handleKeyPressed(const sf::Event::KeyPressed &keyPressed) {
 
     if (gameState == GameState::RUNNING) {
         if (player->isHuman()) {
-            // Użycie wskaźnika
             if (keyPressed.code == sf::Keyboard::Key::Left) {
                 player->makeMove(maze, 'L');
             } else if (keyPressed.code == sf::Keyboard::Key::Right) {
@@ -293,8 +363,6 @@ void MazeScreen::handleKeyPressed(const sf::Event::KeyPressed &keyPressed) {
             player->activate();
         }
     }
-    draw();
-    maze.printBoard();
     if (player->checkForWin(maze)) {
         winGame();
     }

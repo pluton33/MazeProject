@@ -25,99 +25,104 @@ void ComputerRandomPlayer::initSearch(Maze &maze) {
 
 }
 
-void ComputerRandomPlayer::performStep(Maze &maze) {
+void ComputerRandomPlayer::performStep(Maze &maze, int stepsPerFrame) {
+    int proby = 0;
     std::uniform_int_distribution<int> dist(0, maze.getCols() -1);
     if (randomStack.empty()) {
         return;
     }
 
-    Node curr = randomStack.top();
+    for (int k = 0; k < stepsPerFrame && !randomStack.empty(); k++) {
+        Node curr = randomStack.top();
 
-    if (curr.r == endRow) {
-        {
-            path.clear();
-            int r = curr.r;
-            int c = curr.c;
+        if (curr.r == endRow) {
+            {
+                path.clear();
+                int r = curr.r;
+                int c = curr.c;
 
-            // Rekonstrukcja ścieżki
-            while (r != startRow || c != column) {
-                char mv = parentMove[r][c];
-                if (mv == 0) break;
-                path.push_back(mv);
+                // Rekonstrukcja ścieżki
+                while (r != startRow || c != column) {
+                    char mv = parentMove[r][c];
+                    if (mv == 0) break;
+                    path.push_back(mv);
 
-                if (mv == 'G') r++;
-                else if (mv == 'D') r--;
-                else if (mv == 'L') c++;
-                else if (mv == 'P') c--;
+                    if (mv == 'G') r++;
+                    else if (mv == 'D') r--;
+                    else if (mv == 'L') c++;
+                    else if (mv == 'P') c--;
+                }
+
+                std::reverse(path.begin(), path.end());
+                if (startCol > 0) {
+                    path.insert(0, startCol, 'P');
+                }
+                char entryChar = (startRow == 0) ? 'D' : 'G';
+
+                size_t entryPos = path.find(entryChar);
+                if (entryPos != std::string::npos) {
+                    path.insert(entryPos, 1, entryChar);
+                }
+                pathFound = true;
+                pathIndex = 0;
+
+                std::stack<Node> empty;
+                std::swap(randomStack, empty);
+                std::cout << "ilosc prob: " <<  proby << std::endl ;
+                return;
             }
+        }
 
-            std::reverse(path.begin(), path.end());
-            if (startCol > 0) {
-                path.insert(0, startCol, 'P');
-            }
-            char entryChar = (startRow == 0) ? 'D' : 'G';
+        int dr[4] = {1, 0, 0, -1};
+        int dc[4] = {0, -1, 1, 0};
+        char mv[4] = {'D', 'L', 'P', 'G'};
 
-            size_t entryPos = path.find(entryChar);
-            if (entryPos != std::string::npos) {
-                path.insert(entryPos, 1, entryChar);
-            }
-            pathFound = true;
-            pathIndex = 0;
+        std::vector<int> directions = {0, 1, 2, 3};
+        std::shuffle(directions.begin(), directions.end(), rng);
 
+        bool moved = false;
+
+        for (int dirIndex : directions) {
+            int nr = curr.r + dr[dirIndex];
+            int nc = curr.c + dc[dirIndex];
+
+            if (nr >= 0 && nr < maze.getRows() && nc >= 0 && nc < maze.getCols() &&
+                !maze.isBlocked(nr, nc) && !visited[nr][nc]) {
+                randomStack.push({nr, nc});
+                visited[nr][nc] = true;
+                parentMove[nr][nc] = mv[dirIndex];
+
+                int sup = maze.markCell(nr, nc);
+                if (sup) std::cout << "Ruch na: " << nr << " " << nc << std::endl;
+
+                moved = true;
+                break;
+                }
+        }
+
+        if (!moved) {
+            std::cout << "Zablokowany w (" << curr.r << "," << curr.c << ")! Reset do startu..." << std::endl;
             std::stack<Node> empty;
             std::swap(randomStack, empty);
-            return;
-        }
-    }
-
-    int dr[4] = {1, 0, 0, -1};
-    int dc[4] = {0, -1, 1, 0};
-    char mv[4] = {'D', 'L', 'P', 'G'};
-
-    std::vector<int> directions = {0, 1, 2, 3};
-    std::shuffle(directions.begin(), directions.end(), rng);
-
-    bool moved = false;
-
-    for (int dirIndex : directions) {
-        int nr = curr.r + dr[dirIndex];
-        int nc = curr.c + dc[dirIndex];
-
-        if (nr >= 0 && nr < maze.getRows() && nc >= 0 && nc < maze.getCols() &&
-            !maze.isBlocked(nr, nc) && !visited[nr][nc]) {
-            randomStack.push({nr, nc});
-            visited[nr][nc] = true;
-            parentMove[nr][nc] = mv[dirIndex];
-
-            int sup = maze.markCell(nr, nc);
-            if (sup) std::cout << "Ruch na: " << nr << " " << nc << std::endl;
-
-            moved = true;
-            break;
+            // resetPosition();
+            maze.clearPaths();
+            for(auto &row : visited) {
+                std::fill(row.begin(), row.end(), false);
             }
-    }
+            for(auto &row : parentMove) std::fill(row.begin(), row.end(), 0);
+            do {
+                startCol = dist(rng);
+            } while (maze.isBlocked(startRow, startCol));
 
-    if (!moved) {
-        std::cout << "Zablokowany w (" << curr.r << "," << curr.c << ")! Reset do startu..." << std::endl;
-        std::stack<Node> empty;
-        std::swap(randomStack, empty);
-        // resetPosition();
-        maze.clearPaths();
-        for(auto &row : visited) {
-            std::fill(row.begin(), row.end(), false);
+            randomStack.push({startRow, startCol});
+            visited[startRow][startCol] = true;
+            maze.markCell(startRow, startCol);
+            proby++;
         }
-        for(auto &row : parentMove) std::fill(row.begin(), row.end(), 0);
-        do {
-            startCol = dist(rng);
-        } while (maze.isBlocked(startRow, startCol));
-
-        randomStack.push({startRow, startCol});
-        visited[startRow][startCol] = true;
-        maze.markCell(startRow, startCol);
     }
 }
 
-void ComputerRandomPlayer::update(Maze &maze) {
+void ComputerRandomPlayer::update(Maze &maze, int stepsPerFrame) {
     if (!isActivated) return;
 
     if (!searchStarted) {
@@ -128,7 +133,7 @@ void ComputerRandomPlayer::update(Maze &maze) {
     if (!pathFound) {
         for (int k = 0; k < 1; k++) {
             if (pathFound || randomStack.empty()) break;
-            performStep(maze);
+            performStep(maze, stepsPerFrame);
         }
         return;
     }

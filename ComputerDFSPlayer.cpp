@@ -35,90 +35,92 @@ void ComputerDFSPlayer::initSearch(Maze &maze) {
     searchStarted = true;
 }
 
-void ComputerDFSPlayer::performDFSStep(Maze &maze) {
+void ComputerDFSPlayer::performDFSStep(Maze &maze, int stepsPerFrame) {
     if (dfsStack.empty()) {
         std::cout << "DFS: brak wyjścia (sprawdzono wszystkie opcje)\n";
         return;
     }
 
-    DFSNode curr = dfsStack.top();
+    for (int k = 0; k < stepsPerFrame && !dfsStack.empty(); k++) {
+        DFSNode curr = dfsStack.top();
 
-    if (curr.r == endRow) {
-        path.clear();
-        int r = curr.r;
-        int c = curr.c;
+        if (curr.r == endRow) {
+            path.clear();
+            int r = curr.r;
+            int c = curr.c;
 
-        while (true) {
-            char mv = parentMove[r][c];
-            if (mv == 0) break;
+            while (true) {
+                char mv = parentMove[r][c];
+                if (mv == 0) break;
 
-            path.push_back(mv);
+                path.push_back(mv);
 
-            if (mv == 'G') r++;
-            else if (mv == 'D') r--;
-            else if (mv == 'L') c++;
-            else if (mv == 'P') c--;
+                if (mv == 'G') r++;
+                else if (mv == 'D') r--;
+                else if (mv == 'L') c++;
+                else if (mv == 'P') c--;
+            }
+
+            std::reverse(path.begin(), path.end());
+
+            this->row = r;
+            this->column = c;
+
+            char entryChar = (startRow == 0) ? 'D' : 'G';
+
+            size_t entryPos = path.find(entryChar);
+            if (entryPos != std::string::npos) {
+                path.insert(entryPos, 1, entryChar);
+            }
+
+            pathFound = true;
+            pathIndex = 0;
+
+            std::stack<DFSNode> empty;
+            std::swap(dfsStack, empty);
+            return;
+        }
+        std::array<int, 4> dr{};
+        std::array<int, 4> dc{};
+        std::array<char, 4> mv{};
+
+        if (startRow == 0) {
+            dr = {1, 0, 0, -1};
+            dc = {0, -1, 1, 0};
+            mv = {'D', 'L', 'P', 'G'};
+        } else {
+            dr = {-1, 0, 0, 1};
+            dc = {0, -1, 1, 0};
+            mv = {'G', 'L', 'P', 'D'};
         }
 
-        std::reverse(path.begin(), path.end());
+        bool moved = false;
 
-        this->row = r;
-        this->column = c;
+        for (int i = 0; i < 4; i++) {
+            int nr = curr.r + dr[i];
+            int nc = curr.c + dc[i];
 
-        char entryChar = (startRow == 0) ? 'D' : 'G';
+            if (nr < 0 || nr >= maze.getRows() || nc < 0 || nc >= maze.getCols()) continue;
+            if (visited[nr][nc]) continue;
+            if (maze.isBlocked(nr, nc)) continue;
 
-        size_t entryPos = path.find(entryChar);
-        if (entryPos != std::string::npos) {
-            path.insert(entryPos, 1, entryChar);
+            visited[nr][nc] = true;
+            parentMove[nr][nc] = mv[i];
+
+            dfsStack.push({nr, nc});
+            maze.markCell(nr, nc);
+
+            moved = true;
+            break;
         }
 
-        pathFound = true;
-        pathIndex = 0;
-
-        std::stack<DFSNode> empty;
-        std::swap(dfsStack, empty);
-        return;
-    }
-    std::array<int, 4> dr{};
-    std::array<int, 4> dc{};
-    std::array<char, 4> mv{};
-
-    if (startRow == 0) {
-        dr = {1, 0, 0, -1};
-        dc = {0, -1, 1, 0};
-        mv = {'D', 'L', 'P', 'G'};
-    } else {
-        dr = {-1, 0, 0, 1};
-        dc = {0, -1, 1, 0};
-        mv = {'G', 'L', 'P', 'D'};
-    }
-
-    bool moved = false;
-
-    for (int i = 0; i < 4; i++) {
-        int nr = curr.r + dr[i];
-        int nc = curr.c + dc[i];
-
-        if (nr < 0 || nr >= maze.getRows() || nc < 0 || nc >= maze.getCols()) continue;
-        if (visited[nr][nc]) continue;
-        if (maze.isBlocked(nr, nc)) continue;
-
-        visited[nr][nc] = true;
-        parentMove[nr][nc] = mv[i];
-
-        dfsStack.push({nr, nc});
-        maze.markCell(nr, nc);
-
-        moved = true;
-        break;
-    }
-
-    if (!moved) {
-        dfsStack.pop();
+        if (!moved) {
+            dfsStack.pop();
+        }
     }
 }
 
-void ComputerDFSPlayer::update(Maze &maze) {
+void ComputerDFSPlayer::update(Maze &maze, int stepsPerFrame) {
     if (!isActivated) return;
 
     if (!searchStarted) {
@@ -129,7 +131,7 @@ void ComputerDFSPlayer::update(Maze &maze) {
     if (!pathFound) {
         for (int k = 0; k < 1; k++) {
             if (pathFound || dfsStack.empty()) break;
-            performDFSStep(maze);
+            performDFSStep(maze, stepsPerFrame);
         }
         return;
     }

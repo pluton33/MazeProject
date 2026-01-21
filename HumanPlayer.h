@@ -9,7 +9,7 @@
 
 class HumanPlayer : public Player {
 public:
-    void update(Maze &maze) override {
+    void update(Maze &maze, int stepsPerFrame) override {
     }
     bool isHuman() override {return true;}
 

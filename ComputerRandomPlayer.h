@@ -34,11 +34,11 @@ private:
     // -------------------------------------------------------
 
     void initSearch(Maze &maze);
-    void performStep(Maze &maze);
+    void performStep(Maze &maze, int stepsPerFrame);
 
 
 public:
-    void update(Maze &maze) override;
+    void update(Maze &maze, int stepsPerFrame) override;
 
     bool isHuman() override { return false; }
 

@@ -28,14 +28,12 @@ void ComputerBFTPlayer::initSearch(Maze& maze) {
     searchStarted = true;
 }
 
-void ComputerBFTPlayer::performBFSStep(Maze& maze) {
+void ComputerBFTPlayer::performBFSStep(Maze& maze, int stepsPerFrame) {
 
     if (bfsQueue.empty()) {
         std::cout << "Koniec przeszukiwania - brak wyjscia!" << std::endl;
         return;
     }
-
-    int stepsPerFrame = 1;
 
     for (int k = 0; k < stepsPerFrame && !bfsQueue.empty(); k++) {
         Node curr = bfsQueue.front();
@@ -96,7 +94,7 @@ void ComputerBFTPlayer::performBFSStep(Maze& maze) {
     }
 }
 
-void ComputerBFTPlayer::update(Maze& maze) {
+void ComputerBFTPlayer::update(Maze& maze, int stepsPerFrame) {
     if (!isActivated) {
         return;
     }
@@ -106,7 +104,7 @@ void ComputerBFTPlayer::update(Maze& maze) {
     }
 
     if (!pathFound) {
-        performBFSStep(maze);
+        performBFSStep(maze, stepsPerFrame);
         return;
     }
 
@@ -115,9 +113,9 @@ void ComputerBFTPlayer::update(Maze& maze) {
         return;
     }
 
-    static int moveDelay = 0;
-    if (++moveDelay < 5) return;
-    moveDelay = 0;
+    // static int moveDelay = 0;
+    // if (++moveDelay < 5) return;
+    // moveDelay = 0;
 
     if (pathIndex < path.length()) {
         makeMove(maze, path[pathIndex]);

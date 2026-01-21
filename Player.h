@@ -14,7 +14,7 @@ public:
 
     virtual ~Player();
 
-    virtual void update(Maze &maze) = 0;
+    virtual void update(Maze &maze, int stepsPerFrame) = 0;
 
     virtual bool isHuman() = 0;
 

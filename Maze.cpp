@@ -40,13 +40,13 @@ bool Maze::readBoard(const std::string& filename) {
     return true;
 }
 
-bool Maze::createBoard(int x, int y) {
+bool Maze::createBoard(int x, int y, int ratio) {
     rows = y;
     cols = x;
     board.clear();
     std::string line;
     for (int i = 0; i < y; ++i) {
-        line = randomLine(x);
+        line = randomLine(x, ratio);
         board.push_back(line);
     }
     return true;
@@ -64,13 +64,13 @@ void Maze::printBoard() const {
     }
 }
 
-std::string Maze::randomLine(int length) {
+std::string Maze::randomLine(int length, int ratio) {
     std::string result;
     result.reserve(length);
 
     for (size_t i = 0; i < length; ++i) {
 
-        result += (rand() % 3 != 0) ? 'B' : 'C';
+        result += (rand() % ratio != 0) ? 'B' : 'C';
     }
 
     return result;

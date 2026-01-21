@@ -13,7 +13,7 @@ public:
     Maze(int rows = 0, int cols = 0);
 
     bool readBoard(const std::string& filename);
-    bool createBoard(int x, int y);
+    bool createBoard(int x, int y, int ratio = 3);
     bool createBoard() {
         createBoard(cols, rows);
         return true;
@@ -27,7 +27,7 @@ public:
     int getRows() const;
     int getCols() const;
 
-    std::string randomLine(int length);
+    std::string randomLine(int length, int ratio);
 
     bool isBlocked(int row, int col);
     int activateCell(int row, int col);
