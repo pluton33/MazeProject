@@ -54,7 +54,8 @@ void MazeScreen::loadMainMenu() {
 
     Button restartBtn(160.f, 40.f, "Nowy", font);
     restartBtn.setOnClick([this]() {
-        this->maze.createBoard(this->maze.getRows(), this->maze.getCols(), this->wallRatio);
+        std::cout << this->maze.getRows() << " " << this->maze.getCols() << std::endl;
+        this->maze.createBoard(this->maze.getCols(), this->maze.getRows(), this->wallRatio);
         this->restartGame();
     });
     buttons.push_back(restartBtn);
@@ -317,7 +318,7 @@ void MazeScreen::processInputConfirmation() {
             int h = std::stoi(userInput);
             if (h < 5) h = 5;
 
-            maze.createBoard(h, tempGenWidth, wallRatio);
+            maze.createBoard(tempGenWidth, h, wallRatio);
             restartGame();
             updateMazeLayout();
             isTyping = false;
