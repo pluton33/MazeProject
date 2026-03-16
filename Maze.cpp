@@ -40,6 +40,20 @@ bool Maze::readBoard(const std::string& filename) {
     return true;
 }
 
+bool Maze::saveBoard(const std::string& filename) {
+    std::ofstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Błąd tworzenia pliku!" << std::endl;
+        return false;
+    }
+    file << rows << " " << cols << std::endl;
+    for (int row = 0; row < rows; ++row) {
+        file << getBoard()[row] << std::endl;
+    }
+    return true;
+
+}
+
 bool Maze::createBoard(int x, int y, int ratio) {
     rows = y;
     cols = x;

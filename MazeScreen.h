@@ -18,6 +18,7 @@
 enum class InputMode {
     NONE,
     LOAD_FILENAME,
+    SAVE_FILE,
     GEN_WIDTH,
     GEN_HEIGHT
 };

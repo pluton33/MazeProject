@@ -13,6 +13,7 @@ public:
     Maze(int rows = 0, int cols = 0);
 
     bool readBoard(const std::string& filename);
+    bool saveBoard(const std::string& filename);
     bool createBoard(int x, int y, int ratio = 3);
     bool createBoard() {
         createBoard(cols, rows);

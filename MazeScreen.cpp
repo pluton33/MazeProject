@@ -75,6 +75,15 @@ void MazeScreen::loadMainMenu() {
     });
     buttons.push_back(loadBtn);
 
+    Button saveBtn(160.f, 40.f, "Zapisz Labirynt", font);
+    saveBtn.setOnClick([this]() {
+        isTyping = true;
+        currentInputMode = InputMode::SAVE_FILE;
+        userInput = "";
+        promptText.setString("Podaj nazwe pliku:");
+    });
+    buttons.push_back(saveBtn);
+
     Button genBtn(160.f, 40.f, "Generuj Wlasny", font);
     genBtn.setOnClick([this]() {
         isTyping = true;
@@ -287,6 +296,13 @@ void MazeScreen::processInputConfirmation() {
             } else {
                 std::cout << "Blad wczytywania pliku: " << userInput << std::endl;
             }
+            isTyping = false;
+        }
+        else if (currentInputMode == InputMode::SAVE_FILE) {
+            if (!maze.saveBoard(userInput)) {
+                std::cout << "Błąd zapisu pliku" << std::endl;
+            }
+            std::cout << "Zapisano pomyślnie" << std::endl;
             isTyping = false;
         }
         else if (currentInputMode == InputMode::GEN_WIDTH) {
