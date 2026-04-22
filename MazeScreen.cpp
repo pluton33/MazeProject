@@ -54,7 +54,8 @@ void MazeScreen::loadMainMenu() {
 
     Button restartBtn(160.f, 40.f, "Nowy", font);
     restartBtn.setOnClick([this]() {
-        this->maze.createBoard(this->maze.getRows(), this->maze.getCols(), this->wallRatio);
+        std::cout << this->maze.getRows() << " " << this->maze.getCols() << std::endl;
+        this->maze.createBoard(this->maze.getCols(), this->maze.getRows(), this->wallRatio);
         this->restartGame();
     });
     buttons.push_back(restartBtn);
@@ -74,6 +75,15 @@ void MazeScreen::loadMainMenu() {
         promptText.setString("Podaj nazwe pliku:");
     });
     buttons.push_back(loadBtn);
+
+    Button saveBtn(160.f, 40.f, "Zapisz Labirynt", font);
+    saveBtn.setOnClick([this]() {
+        isTyping = true;
+        currentInputMode = InputMode::SAVE_FILE;
+        userInput = "";
+        promptText.setString("Podaj nazwe pliku:");
+    });
+    buttons.push_back(saveBtn);
 
     Button genBtn(160.f, 40.f, "Generuj Wlasny", font);
     genBtn.setOnClick([this]() {
@@ -289,6 +299,13 @@ void MazeScreen::processInputConfirmation() {
             }
             isTyping = false;
         }
+        else if (currentInputMode == InputMode::SAVE_FILE) {
+            if (!maze.saveBoard(userInput)) {
+                std::cout << "Błąd zapisu pliku" << std::endl;
+            }
+            std::cout << "Zapisano pomyślnie" << std::endl;
+            isTyping = false;
+        }
         else if (currentInputMode == InputMode::GEN_WIDTH) {
             tempGenWidth = std::stoi(userInput);
             if (tempGenWidth < 5) tempGenWidth = 5;
@@ -301,7 +318,7 @@ void MazeScreen::processInputConfirmation() {
             int h = std::stoi(userInput);
             if (h < 5) h = 5;
 
-            maze.createBoard(h, tempGenWidth, wallRatio);
+            maze.createBoard(tempGenWidth, h, wallRatio);
             restartGame();
             updateMazeLayout();
             isTyping = false;
